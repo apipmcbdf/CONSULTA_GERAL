@@ -253,6 +253,15 @@
         html += `</div>`;
       }
       
+      // Se houver protocolo em Auxílio Moradia ou VPE, exibe o box com a mensagem de protocolo
+      if (results.auxilioMoradia.protocolo || results.vpe.protocolo) {
+        html += `
+          <div class="info-box">
+            <p>Seu processo foi devidamente protocolado. Agora, basta aguardar o andamento. Qualquer movimentação relevante, você será informado(a) imediatamente.</p>
+          </div>
+        `;
+      }
+      
       // Se não houver nenhum dado encontrado, exibe mensagem
       if (
         !results.status &&
@@ -409,12 +418,24 @@
     /* Estilo para o box de alerta (status DESLIGADO) */
     .alert-box {
       margin-top: 20px;
-      margin-bottom: 20px; /* Espaço inferior adicionado */
+      margin-bottom: 20px;
       padding: 15px;
       border: 1px solid #e74c3c;
       border-radius: 6px;
       background-color: #f9e6e6;
       color: #c0392b;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    /* Estilo para o box de informações de protocolo */
+    .info-box {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #3498db;
+      border-radius: 6px;
+      background-color: #e8f4fd;
+      color: #2980b9;
       font-size: 14px;
       line-height: 1.6;
     }
