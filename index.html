@@ -187,10 +187,27 @@
 
       let html = `<div class="result-header"><h2>Dados para CPF: ${cpfFormatado}</h2></div>`;
       
-      // Exibe os cards com informações
+      // Exibe o card de Status do Associado
       if (results.status) {
         html += `<div class="card"><span class="label">Status do Associado:</span> ${formatValue(results.status, 'status')}</div>`;
+        // Se o status for DESLIGADO e a documentação VPE estiver INCOMPLETA, exibe o box de alerta logo após o status
+        if (
+          results.status.trim().toUpperCase() === "DESLIGADO" &&
+          results.vpe.documentacao &&
+          results.vpe.documentacao.Documentacao &&
+          results.vpe.documentacao.Documentacao.trim().toUpperCase() === "INCOMPLETA"
+        ) {
+          html += `
+            <div class="alert-box">
+              <p>
+                Ao consultarmos a situação do seu vínculo associativo, verificamos que não há registro de pagamento das mensalidades recentes. Pedimos, por gentileza, que entre em contato conosco para regularizar sua situação. Somente com a devida regularização poderemos continuar prestando a representação necessária.
+              </p>
+            </div>
+          `;
+        }
       }
+      
+      // Grupo Auxílio Moradia
       if (results.auxilioMoradia.protocolo || results.auxilioMoradia.documentacao) {
         html += `<div class="group-card"><h3>Auxílio Moradia</h3>`;
         if (results.auxilioMoradia.protocolo) {
@@ -207,6 +224,8 @@
         }
         html += `</div>`;
       }
+      
+      // Grupo VPE (Vantagem Pecuniária Especial)
       if (results.vpe.protocolo || results.vpe.documentacao) {
         html += `<div class="group-card"><h3>VPE (Vantagem Pecuniária Especial)</h3>`;
         if (results.vpe.protocolo) {
@@ -234,24 +253,18 @@
         html += `</div>`;
       }
       
-      // Ao final de tudo, exibe os boxes de alerta, se aplicável:
-      // 1. Box para associado DESLIGADO com documentação INCOMPLETA
+      // Se não houver nenhum dado encontrado, exibe mensagem
       if (
-        results.status &&
-        results.status.trim().toUpperCase() === "DESLIGADO" &&
-        results.vpe.documentacao &&
-        results.vpe.documentacao.Documentacao &&
-        results.vpe.documentacao.Documentacao.trim().toUpperCase() === "INCOMPLETA"
+        !results.status &&
+        !results.auxilioMoradia.protocolo &&
+        !results.auxilioMoradia.documentacao &&
+        !results.vpe.protocolo &&
+        !results.vpe.documentacao
       ) {
-        html += `
-          <div class="alert-box">
-            <p>
-              Ao consultarmos a situação do seu vínculo associativo, verificamos que não há registro de pagamento das mensalidades recentes. Pedimos, por gentileza, que entre em contato conosco para regularizar sua situação. Somente com a devida regularização poderemos continuar prestando a representação necessária.
-            </p>
-          </div>
-        `;
+        html += `<div class="card"><span class="value">Nenhum dado encontrado para o CPF ${cpfFormatado}.</span></div>`;
       }
-      // 2. Box com instruções para envio dos documentos (para Documentação Incompleta)
+      
+      // Ao final, exibe o box com as instruções para envio dos documentos (caso a documentação VPE esteja INCOMPLETA)
       if (docVPEIncomplete) {
         html += `
           <div class="message-block">
@@ -393,7 +406,7 @@
       text-decoration: underline;
     }
     
-    /* Estilo para o box de alerta (associado DESLIGADO com documentação INCOMPLETA) */
+    /* Estilo para o box de alerta (status DESLIGADO) */
     .alert-box {
       margin-top: 20px;
       padding: 15px;
