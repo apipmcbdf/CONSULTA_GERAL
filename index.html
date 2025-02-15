@@ -89,7 +89,7 @@
       return `<span class="value">${value}</span>`;
     }
 
-    // Variável para indicar se a documentação VPE está incompleta
+    // Flag para indicar se a documentação VPE está INCOMPLETA
     let docVPEIncomplete = false;
 
     // Consulta os dados do CPF e agrupa em "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
@@ -187,53 +187,10 @@
 
       let html = `<div class="result-header"><h2>Dados para CPF: ${cpfFormatado}</h2></div>`;
       
-      // Se o status for DESLIGADO e a documentação VPE estiver INCOMPLETA, exibe o box de alerta primeiro
-      if (
-        results.status &&
-        results.status.trim().toUpperCase() === "DESLIGADO" &&
-        results.vpe.documentacao &&
-        results.vpe.documentacao.Documentacao &&
-        results.vpe.documentacao.Documentacao.trim().toUpperCase() === "INCOMPLETA"
-      ) {
-        html += `
-          <div class="alert-box">
-            <p>
-              Ao consultarmos a situação do seu vínculo associativo, verificamos que não há registro de pagamento das mensalidades recentes. Pedimos, por gentileza, que entre em contato conosco para regularizar sua situação. Somente com a devida regularização poderemos continuar prestando a representação necessária.
-            </p>
-            <p>
-              Por favor, envie os documentos pendentes devidamente escaneados para o e-mail <strong>documentos@apipmcbdf.com.br</strong> com o assunto <em>"Documentação Pendente VPE"</em>.
-            </p>
-            <p>
-              É importante que os documentos sejam escaneados em alta qualidade para garantir sua legibilidade. Além disso, o envio dos originais é obrigatório e pode ser realizado das seguintes formas:
-            </p>
-            <p>
-              <strong>✉️ Por correio</strong><br>
-              Rua Evaristo da Veiga, 55, 10º andar<br>
-              CEP: 20031-040
-            </p>
-            <p>
-              <strong>🙋 Entrega pessoalmente</strong><br>
-              No mesmo endereço, durante o horário de atendimento (das 09h às 13h).
-            </p>
-            <p>
-              Se preferir, você também pode entrar em contato conosco para mais informações:
-            </p>
-            <p>
-              <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
-              <strong>💬 WhatsApp:</strong> 21 98499-7413
-            </p>
-            <p>
-              Caso tenha dúvidas, estamos à disposição para auxiliá-lo(a).
-            </p>
-          </div>
-        `;
-      }
-      
+      // Exibe os cards com informações
       if (results.status) {
         html += `<div class="card"><span class="label">Status do Associado:</span> ${formatValue(results.status, 'status')}</div>`;
       }
-
-      // Grupo Auxílio Moradia
       if (results.auxilioMoradia.protocolo || results.auxilioMoradia.documentacao) {
         html += `<div class="group-card"><h3>Auxílio Moradia</h3>`;
         if (results.auxilioMoradia.protocolo) {
@@ -250,8 +207,6 @@
         }
         html += `</div>`;
       }
-
-      // Grupo VPE (Vantagem Pecuniária Especial)
       if (results.vpe.protocolo || results.vpe.documentacao) {
         html += `<div class="group-card"><h3>VPE (Vantagem Pecuniária Especial)</h3>`;
         if (results.vpe.protocolo) {
@@ -278,15 +233,51 @@
         }
         html += `</div>`;
       }
-
+      
+      // Ao final de tudo, exibe os boxes de alerta, se aplicável:
+      // 1. Box para associado DESLIGADO com documentação INCOMPLETA
       if (
-        !results.status &&
-        !results.auxilioMoradia.protocolo &&
-        !results.auxilioMoradia.documentacao &&
-        !results.vpe.protocolo &&
-        !results.vpe.documentacao
+        results.status &&
+        results.status.trim().toUpperCase() === "DESLIGADO" &&
+        results.vpe.documentacao &&
+        results.vpe.documentacao.Documentacao &&
+        results.vpe.documentacao.Documentacao.trim().toUpperCase() === "INCOMPLETA"
       ) {
-        html += `<div class="card"><span class="value">Nenhum dado encontrado para o CPF ${cpfFormatado}.</span></div>`;
+        html += `
+          <div class="alert-box">
+            <p>
+              Ao consultarmos a situação do seu vínculo associativo, verificamos que não há registro de pagamento das mensalidades recentes. Pedimos, por gentileza, que entre em contato conosco para regularizar sua situação. Somente com a devida regularização poderemos continuar prestando a representação necessária.
+            </p>
+          </div>
+        `;
+      }
+      // 2. Box com instruções para envio dos documentos (para Documentação Incompleta)
+      if (docVPEIncomplete) {
+        html += `
+          <div class="message-block">
+            <p>
+              Por favor, envie os documentos pendentes devidamente escaneados para o e-mail <strong>documentos@apipmcbdf.com.br</strong> com o assunto <em>"Documentação Pendente VPE"</em>.
+            </p>
+            <p>
+              É importante que os documentos sejam escaneados em alta qualidade para garantir sua legibilidade. Além disso, o envio dos originais é obrigatório e pode ser realizado das seguintes formas:
+            </p>
+            <p>
+              <strong>✉️ Por correio</strong><br>
+              Rua Evaristo da Veiga, 55, 10º andar<br>
+              CEP: 20031-040
+            </p>
+            <p>
+              <strong>🙋 Entrega pessoalmente</strong><br>
+              No mesmo endereço, durante o horário de atendimento (das 09h às 13h).
+            </p>
+            <p>Se preferir, você também pode entrar em contato conosco para mais informações:</p>
+            <p>
+              <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
+              <strong>💬 WhatsApp:</strong> 21 98499-7413
+            </p>
+            <p>Caso tenha dúvidas, estamos à disposição para auxiliá-lo(a).</p>
+          </div>
+        `;
       }
 
       document.getElementById('resultados').innerHTML = html;
@@ -402,9 +393,9 @@
       text-decoration: underline;
     }
     
-    /* Estilo para o bloco de alerta de associado DESLIGADO com documentação incompleta */
+    /* Estilo para o box de alerta (associado DESLIGADO com documentação INCOMPLETA) */
     .alert-box {
-      margin-bottom: 20px;
+      margin-top: 20px;
       padding: 15px;
       border: 1px solid #e74c3c;
       border-radius: 6px;
@@ -414,7 +405,20 @@
       line-height: 1.6;
     }
     
-    .alert-box p {
+    /* Estilo para o box de instruções para envio dos documentos */
+    .message-block {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #f1c40f;
+      border-radius: 6px;
+      background-color: #fcf8e3;
+      color: #8a6d3b;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .alert-box p,
+    .message-block p {
       margin: 10px 0;
     }
   </style>
