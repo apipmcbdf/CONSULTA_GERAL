@@ -89,6 +89,9 @@
       return `<span class="value">${value}</span>`;
     }
 
+    // Variável para indicar se a documentação VPE está incompleta
+    let docVPEIncomplete = false;
+
     // Consulta os dados do CPF e agrupa em "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
     async function consultarCPF() {
       const cpfInput = document.getElementById('cpf').value;
@@ -97,6 +100,9 @@
         return;
       }
       const cpfFormatado = formatarCPF(cpfInput);
+
+      // Reinicia a flag de documentação incompleta
+      docVPEIncomplete = false;
 
       let results = {
         status: null,
@@ -161,6 +167,9 @@
           let docObj = {};
           if (data.Documentacao && data.Documentacao !== "" && data.Documentacao !== "NaN") {
             docObj.Documentacao = data.Documentacao;
+            if (data.Documentacao.trim().toUpperCase() === "INCOMPLETA") {
+              docVPEIncomplete = true;
+            }
           }
           if (data.Pendencias && data.Pendencias !== "" && data.Pendencias !== "NaN") {
             docObj.Pendencias = data.Pendencias;
@@ -236,6 +245,38 @@
         !results.vpe.documentacao
       ) {
         html += `<div class="card"><span class="value">Nenhum dado encontrado para o CPF ${cpfFormatado}.</span></div>`;
+      }
+
+      // Se a documentação VPE estiver incompleta, exibe mensagem adicional
+      if (docVPEIncomplete) {
+        html += `
+          <div class="message-block">
+            <p>
+              Por favor, envie os documentos pendentes devidamente escaneados para o e-mail
+              <strong>documentos@apipmcbdf.com.br</strong>
+              com o assunto <em>"Documentação Pendente VPE"</em>.
+            </p>
+            <p>
+              É importante que os documentos sejam escaneados em alta qualidade para garantir sua legibilidade.
+              Além disso, o envio dos originais é obrigatório e pode ser realizado das seguintes formas:
+            </p>
+            <p>
+              <strong>✉️ Por correio</strong><br>
+              Rua Evaristo da Veiga, 55, 10º andar<br>
+              CEP: 20031-040
+            </p>
+            <p>
+              <strong>🙋 Entrega pessoalmente</strong><br>
+              No mesmo endereço, durante o horário de atendimento (das 09h às 13h).
+            </p>
+            <p>Se preferir, você também pode entrar em contato conosco para mais informações:</p>
+            <p>
+              <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607 <br>
+              <strong>💬 WhatsApp:</strong> 21 98499-7413
+            </p>
+            <p>Caso tenha dúvidas, estamos à disposição para auxiliá-lo(a).</p>
+          </div>
+        `;
       }
 
       document.getElementById('resultados').innerHTML = html;
@@ -349,6 +390,22 @@
     
     .link-doc:hover {
       text-decoration: underline;
+    }
+    
+    /* Estilo para o bloco de mensagem */
+    .message-block {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #f1c40f;
+      border-radius: 6px;
+      background-color: #fcf8e3;
+      color: #8a6d3b;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .message-block p {
+      margin: 10px 0;
     }
   </style>
 </head>
