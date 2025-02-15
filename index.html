@@ -1,70 +1,119 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Consulta de Dados - Firestore</title>
+  <title>Consulta de Dados</title>
+  <!-- Inclua os scripts do Firebase (versão modular) -->
   <script type="module">
-    // Importar as funções necessárias do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    // Importe as funções necessárias do Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // Configuração do Firebase
+    // Configuração do Firebase com os seus dados
     const firebaseConfig = {
-  apiKey: "AIzaSyDoXdgj_fRuYTluJby6QOIiEYBu268lZmQ",
-  authDomain: "documentos-apipmcbdf.firebaseapp.com",
-  projectId: "documentos-apipmcbdf",
-  storageBucket: "documentos-apipmcbdf.firebasestorage.app",
-  messagingSenderId: "422508459389",
-  appId: "1:422508459389:web:bebd6b53839f77a3cd4814"
-};
+      apiKey: "AIzaSyDoXdgj_fRuYTluJby6QOIiEYBu268lZmQ",
+      authDomain: "documentos-apipmcbdf.firebaseapp.com",
+      projectId: "documentos-apipmcbdf",
+      storageBucket: "documentos-apipmcbdf.firebasestorage.app",
+      messagingSenderId: "422508459389",
+      appId: "1:422508459389:web:bebd6b53839f77a3cd4814"
+    };
 
-    // Inicializar Firebase
+    // Inicialize o Firebase e o Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function consultarDados() {
-      const cpf = document.getElementById("cpf").value.trim();
-      const resultado = document.getElementById("resultado");
-      resultado.innerHTML = "Consultando...";
+    // Defina as coleções que serão consultadas
+    const colecoes = [
+      "associadosStatus",
+      "protocolosVPE",
+      "documentacaoAuxilioMoradia",
+      "documentacaoVPE",
+      "protocolosAuxilioMoradia"
+    ];
 
-      try {
-        let dadosEncontrados = [];
-        const colecoes = ["associadosStatus", "protocolosVPE", "documentacaoAuxilioMoradia", "documentacaoVPE", "protocolosAuxilioMoradia"];
+    // Função para formatar o CPF com 11 dígitos (adicionando zeros à esquerda, se necessário)
+    function formatarCPF(cpf) {
+      cpf = cpf.trim();
+      return cpf.padStart(11, '0');
+    }
 
-        for (const colecao of colecoes) {
-          const docRef = doc(db, colecao, cpf);
+    // Função que realiza a consulta do CPF nas coleções
+    async function consultarCPF() {
+      // Limpa os resultados anteriores
+      document.getElementById('resultados').innerHTML = "";
+
+      let cpfInput = document.getElementById('cpf').value;
+      if (!cpfInput) {
+        alert("Por favor, insira um CPF.");
+        return;
+      }
+      // Formata o CPF para garantir 11 dígitos
+      const cpfFormatado = formatarCPF(cpfInput);
+
+      let encontrouDados = false;
+      
+      // Itera sobre cada coleção para consultar o documento com o ID igual ao CPF formatado
+      for (let nomeColecao of colecoes) {
+        try {
+          const docRef = doc(db, nomeColecao, cpfFormatado);
           const docSnap = await getDoc(docRef);
-
           if (docSnap.exists()) {
-            dadosEncontrados.push({ colecao, dados: docSnap.data() });
-          }
-        }
+            encontrouDados = true;
+            const dados = docSnap.data();
 
-        if (dadosEncontrados.length > 0) {
-          let resultadoHTML = "<h3>Dados encontrados:</h3><ul>";
-          dadosEncontrados.forEach(item => {
-            resultadoHTML += `<li><strong>${item.colecao}:</strong> <pre>${JSON.stringify(item.dados, null, 2)}</pre></li>`;
-          });
-          resultadoHTML += "</ul>";
-          resultado.innerHTML = resultadoHTML;
-        } else {
-          resultado.innerHTML = "<p style='color: red;'>Nenhum dado encontrado para o CPF informado.</p>";
+            // Cria um container para exibir os dados desta coleção
+            let container = document.createElement('div');
+            container.className = "resultado-collection";
+            
+            let titulo = document.createElement('h3');
+            titulo.textContent = "Coleção: " + nomeColecao;
+            container.appendChild(titulo);
+            
+            // Cria uma lista para mostrar os campos e seus respectivos valores
+            let lista = document.createElement('ul');
+            for (let campo in dados) {
+              // Exibe somente dados válidos (não nulos, não vazios e definidos)
+              if (dados[campo] !== null && dados[campo] !== "" && dados[campo] !== undefined) {
+                let item = document.createElement('li');
+                item.textContent = campo + ": " + dados[campo];
+                lista.appendChild(item);
+              }
+            }
+            container.appendChild(lista);
+            document.getElementById('resultados').appendChild(container);
+          }
+        } catch (error) {
+          console.error("Erro ao consultar a coleção " + nomeColecao, error);
         }
-      } catch (error) {
-        console.error("Erro ao consultar dados: ", error);
-        resultado.innerHTML = "<p style='color: red;'>Erro ao consultar os dados. Tente novamente.</p>";
+      }
+      // Se nenhum dado for encontrado em nenhuma coleção, exibe mensagem de aviso
+      if (!encontrouDados) {
+        document.getElementById('resultados').innerHTML = `<p>Nenhum dado encontrado para o CPF ${cpfFormatado}.</p>`;
       }
     }
+
+    // Torna a função consultarCPF disponível globalmente para ser chamada pelo onclick do botão
+    window.consultarCPF = consultarCPF;
   </script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .resultado-collection {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    h1 { color: #333; }
+    input, button { padding: 8px; font-size: 16px; }
+    button { cursor: pointer; }
+  </style>
 </head>
 <body>
-  <div style="text-align: center; padding: 20px;">
-    <h1>Consulta de Dados - Firestore</h1>
-    <p>Digite o CPF (apenas números) para consultar os dados:</p>
-    <input type="text" id="cpf" placeholder="Ex: 12345678900" maxlength="11" style="padding: 10px; width: 200px;">
-    <button onclick="consultarDados()" style="padding: 10px 20px; margin-left: 10px;">Consultar</button>
-    <div id="resultado" style="margin-top: 20px;"></div>
-  </div>
+  <h1>Consulta de Dados</h1>
+  <p>Digite o CPF (somente números) e clique em "Consultar":</p>
+  <input type="text" id="cpf" placeholder="CPF">
+  <button onclick="consultarCPF()">Consultar</button>
+  <div id="resultados"></div>
 </body>
 </html>
