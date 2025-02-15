@@ -4,8 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Consultar Documentação</title>
+  
+  <!-- Desativa o clique direito e Ctrl+U -->
+  <script>
+    // Impede a abertura do menu de contexto (clique direito)
+    document.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+    });
+
+    // Impede a utilização de Ctrl+U para visualizar o código-fonte
+    document.addEventListener("keydown", function(e) {
+      if (e.ctrlKey && (e.key === "u" || e.key === "U")) {
+        e.preventDefault();
+      }
+    });
+  </script>
+  
+  <!-- Firebase e lógica de consulta -->
   <script type="module">
-    // Importação das funções necessárias do Firebase (versão modular)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
@@ -23,8 +39,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Função para formatar o CPF para 11 dígitos
+    // Função para formatar o CPF para 11 dígitos, removendo "." e "-"
     function formatarCPF(cpf) {
+      cpf = cpf.replace(/[.\-]/g, "");
       return cpf.trim().padStart(11, '0');
     }
 
@@ -65,7 +82,7 @@
         },
         vpe: {
           protocolo: null,         // De "protocolosVPE"
-          documentacao: null       // De "documentacaoVPE"
+          documentacao: null       // De "documentacaoVPE", incluindo RÚBRICA
         }
       };
 
@@ -113,7 +130,7 @@
           }
         }
 
-        // VPE: Consulta da documentação
+        // VPE: Consulta da documentação (incluindo RÚBRICA)
         const snapDocVPE = await getDoc(doc(db, "documentacaoVPE", cpfFormatado));
         if (snapDocVPE.exists()) {
           const data = snapDocVPE.data();
@@ -123,6 +140,9 @@
           }
           if (data.Pendencias && data.Pendencias !== "" && data.Pendencias !== "NaN") {
             docObj.Pendencias = data.Pendencias;
+          }
+          if (data["RÚBRICA"] && data["RÚBRICA"] !== "" && data["RÚBRICA"] !== "NaN") {
+            docObj["RÚBRICA"] = data["RÚBRICA"];
           }
           if (Object.keys(docObj).length > 0) {
             results.vpe.documentacao = docObj;
@@ -171,6 +191,9 @@
           if (docVPE.Pendencias) {
             html += `<div class="card"><span class="label">Pendências:</span> <span class="value">${docVPE.Pendencias}</span></div>`;
           }
+          if (docVPE["RÚBRICA"]) {
+            html += `<div class="card"><span class="label">Rúbrica:</span> <span class="value">${docVPE["RÚBRICA"]}</span></div>`;
+          }
         }
         html += `</div>`;
       }
@@ -188,9 +211,9 @@
       document.getElementById('resultados').innerHTML = html;
     }
 
-    // Torna a função consultarCPF acessível globalmente
     window.consultarCPF = consultarCPF;
   </script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
@@ -269,6 +292,7 @@
     .group-card h3 {
       margin-top: 0;
       color: #007BFF;
+      text-align: center;
     }
 
     .label {
@@ -292,7 +316,7 @@
   <div class="container">
     <h1>Consultar Documentação</h1>
     <div class="form-group">
-      <input type="text" id="cpf" placeholder="Digite seu CPF (somente números)" />
+      <input type="text" id="cpf" placeholder="Digite seu CPF (somente números ou com . e -)" />
       <button onclick="consultarCPF()">Consultar</button>
     </div>
     <div id="resultados"></div>
