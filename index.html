@@ -50,14 +50,22 @@
       "DECLARAÇÃO DE INEXISTENCIA DE AÇÃO AUX": "https://drive.google.com/file/d/1rt4tOVPEQuU7Nj1mHEIMlx25L2ZqaXjp/view?usp=drive_link"
     };
 
-    // Se o valor corresponder ao mapping, retorna o valor como link clicável; caso contrário, apenas o valor
+    // Função que processa o valor das pendências:
+    // Se houver vírgula, trata cada item separadamente
     function getPendenciaLinkHTML(value, mapping) {
-      const pend = value.trim().toUpperCase();
-      if (mapping[pend]) {
-        return `<a href="${mapping[pend]}" target="_blank" class="link-doc">${value}</a>`;
-      } else {
-        return `<span class="value">${value}</span>`;
-      }
+      // Separa os itens usando vírgula
+      const itens = value.split(',').map(item => item.trim()).filter(item => item !== "");
+      // Para cada item, se houver mapeamento, retorna o item como link; senão, apenas o texto
+      const processados = itens.map(item => {
+        const itemUpper = item.toUpperCase();
+        if (mapping[itemUpper]) {
+          return `<a href="${mapping[itemUpper]}" target="_blank" class="link-doc">${item}</a>`;
+        } else {
+          return `<span class="value">${item}</span>`;
+        }
+      });
+      // Junta os itens processados, separados por <br> para melhor visualização
+      return processados.join("<br>");
     }
 
     // Remove caracteres especiais (ponto e hífen) e formata o CPF para 11 dígitos
