@@ -7,11 +7,9 @@
   
   <!-- Desativa o clique direito e Ctrl+U -->
   <script>
-    // Impede a abertura do menu de contexto (clique direito)
     document.addEventListener("contextmenu", function(e) {
       e.preventDefault();
     });
-    // Impede a utilização de Ctrl+U para visualizar o código-fonte
     document.addEventListener("keydown", function(e) {
       if (e.ctrlKey && (e.key === "u" || e.key === "U")) {
         e.preventDefault();
@@ -52,11 +50,11 @@
       "DECLARAÇÃO DE INEXISTENCIA DE AÇÃO AUX": "https://drive.google.com/file/d/1rt4tOVPEQuU7Nj1mHEIMlx25L2ZqaXjp/view?usp=drive_link"
     };
 
-    // Função que retorna um HTML com link "CLIQUE AQUI" se o valor corresponder ao mapping
+    // Se o valor corresponder ao mapping, retorna o valor como link clicável; caso contrário, apenas o valor
     function getPendenciaLinkHTML(value, mapping) {
       const pend = value.trim().toUpperCase();
       if (mapping[pend]) {
-        return `<a href="${mapping[pend]}" target="_blank" class="link-doc">CLIQUE AQUI</a>`;
+        return `<a href="${mapping[pend]}" target="_blank" class="link-doc">${value}</a>`;
       } else {
         return `<span class="value">${value}</span>`;
       }
@@ -86,7 +84,7 @@
       return `<span class="value">${value}</span>`;
     }
 
-    // Função que consulta os dados do CPF e agrupa em "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
+    // Consulta os dados do CPF e agrupa em "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
     async function consultarCPF() {
       const cpfInput = document.getElementById('cpf').value;
       if (!cpfInput) {
@@ -95,21 +93,20 @@
       }
       const cpfFormatado = formatarCPF(cpfInput);
 
-      // Estrutura para armazenar os dados obtidos
       let results = {
-        status: null, // AssociadosStatus → STATUS
+        status: null,
         auxilioMoradia: {
-          protocolo: null,         // protocolosAuxilioMoradia
-          documentacao: null       // documentacaoAuxilioMoradia
+          protocolo: null,
+          documentacao: null
         },
         vpe: {
-          protocolo: null,         // protocolosVPE
-          documentacao: null       // documentacaoVPE (incluindo RÚBRICA)
+          protocolo: null,
+          documentacao: null
         }
       };
 
       try {
-        // Consulta "associadosStatus" – Status do Associado
+        // Consulta "associadosStatus"
         const snapStatus = await getDoc(doc(db, "associadosStatus", cpfFormatado));
         if (snapStatus.exists()) {
           const data = snapStatus.data();
@@ -174,7 +171,6 @@
         console.error("Erro na consulta:", error);
       }
 
-      // Monta o HTML de saída
       let html = `<div class="result-header"><h2>Dados para CPF: ${cpfFormatado}</h2></div>`;
       
       if (results.status) {
@@ -333,12 +329,12 @@
       margin-bottom: 20px;
     }
     
-    /* Estilo para os links dos documentos */
     .link-doc {
       color: #007BFF;
       text-decoration: none;
       font-weight: 500;
     }
+    
     .link-doc:hover {
       text-decoration: underline;
     }
