@@ -52,11 +52,11 @@
       "DECLARAÇÃO DE INEXISTENCIA DE AÇÃO AUX": "https://drive.google.com/file/d/1rt4tOVPEQuU7Nj1mHEIMlx25L2ZqaXjp/view?usp=drive_link"
     };
 
-    // Função que retorna um HTML com link se o valor corresponder a alguma chave no mapping
+    // Função que retorna um HTML com link "CLIQUE AQUI" se o valor corresponder ao mapping
     function getPendenciaLinkHTML(value, mapping) {
       const pend = value.trim().toUpperCase();
       if (mapping[pend]) {
-        return `<a href="${mapping[pend]}" target="_blank" class="link-doc">${pend}</a>`;
+        return `<a href="${mapping[pend]}" target="_blank" class="link-doc">CLIQUE AQUI</a>`;
       } else {
         return `<span class="value">${value}</span>`;
       }
