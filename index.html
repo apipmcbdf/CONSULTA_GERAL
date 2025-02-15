@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Consulta de Dados</title>
-  <!-- Inclua os scripts do Firebase (versão modular) -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Consultar Documentação</title>
   <script type="module">
+    // Importação das funções necessárias do Firebase (versão modular)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
@@ -23,12 +23,31 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Função para formatar o CPF com 11 dígitos (adicionando zeros à esquerda, se necessário)
+    // Função para formatar o CPF para 11 dígitos
     function formatarCPF(cpf) {
       return cpf.trim().padStart(11, '0');
     }
 
-    // Função que realiza a consulta do CPF nas coleções e formata os resultados
+    // Função para formatação condicional dos valores
+    function formatValue(value, type) {
+      if (type === 'status') {
+        if (value.toUpperCase() === "ATIVO") {
+          return `<span class="value" style="color: green;">${value}</span>`;
+        } else if (value.toUpperCase() === "DESLIGADO") {
+          return `<span class="value" style="color: red;">${value}</span>`;
+        }
+      } else if (type === 'documentacao') {
+        if (value.toUpperCase() === "COMPLETA") {
+          return `<span class="value" style="color: green;">${value}</span>`;
+        } else if (value.toUpperCase() === "INCOMPLETA") {
+          return `<span class="value" style="color: red;">${value}</span>`;
+        }
+      }
+      return `<span class="value">${value}</span>`;
+    }
+
+    // Função que consulta os dados do CPF e os agrupa em duas categorias:
+    // "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
     async function consultarCPF() {
       const cpfInput = document.getElementById('cpf').value;
       if (!cpfInput) {
@@ -37,15 +56,21 @@
       }
       const cpfFormatado = formatarCPF(cpfInput);
 
-      // Objeto para armazenar os dados obtidos
+      // Estrutura para armazenar os dados obtidos
       let results = {
-        status: null,      // AssociadosStatus → STATUS
-        protocolos: [],    // Protocolos (de protocolosVPE e protocolosAuxilioMoradia) → NumeroProtocolo
-        documentacao: []   // Documentação (de documentacaoAuxilioMoradia e documentacaoVPE) → Documentacao e Pendencias
+        status: null, // De "associadosStatus"
+        auxilioMoradia: {
+          protocolo: null,         // De "protocolosAuxilioMoradia"
+          documentacao: null       // De "documentacaoAuxilioMoradia"
+        },
+        vpe: {
+          protocolo: null,         // De "protocolosVPE"
+          documentacao: null       // De "documentacaoVPE"
+        }
       };
 
       try {
-        // Consulta associadosStatus (apenas STATUS)
+        // Consulta do status do associado
         const snapStatus = await getDoc(doc(db, "associadosStatus", cpfFormatado));
         if (snapStatus.exists()) {
           const data = snapStatus.data();
@@ -54,25 +79,16 @@
           }
         }
 
-        // Consulta protocolosVPE (apenas NumeroProtocolo)
-        const snapProtoVPE = await getDoc(doc(db, "protocolosVPE", cpfFormatado));
-        if (snapProtoVPE.exists()) {
-          const data = snapProtoVPE.data();
-          if (data.NumeroProtocolo && data.NumeroProtocolo !== "" && data.NumeroProtocolo !== "NaN") {
-            results.protocolos.push(data.NumeroProtocolo);
-          }
-        }
-
-        // Consulta protocolosAuxilioMoradia (apenas NumeroProtocolo)
+        // Auxílio Moradia: Consulta do protocolo
         const snapProtoAM = await getDoc(doc(db, "protocolosAuxilioMoradia", cpfFormatado));
         if (snapProtoAM.exists()) {
           const data = snapProtoAM.data();
           if (data.NumeroProtocolo && data.NumeroProtocolo !== "" && data.NumeroProtocolo !== "NaN") {
-            results.protocolos.push(data.NumeroProtocolo);
+            results.auxilioMoradia.protocolo = data.NumeroProtocolo;
           }
         }
 
-        // Consulta documentacaoAuxilioMoradia (Documentacao e Pendencias)
+        // Auxílio Moradia: Consulta da documentação
         const snapDocAM = await getDoc(doc(db, "documentacaoAuxilioMoradia", cpfFormatado));
         if (snapDocAM.exists()) {
           const data = snapDocAM.data();
@@ -84,11 +100,20 @@
             docObj.Pendencias = data.Pendencias;
           }
           if (Object.keys(docObj).length > 0) {
-            results.documentacao.push(docObj);
+            results.auxilioMoradia.documentacao = docObj;
           }
         }
 
-        // Consulta documentacaoVPE (Documentacao e Pendencias)
+        // VPE: Consulta do protocolo
+        const snapProtoVPE = await getDoc(doc(db, "protocolosVPE", cpfFormatado));
+        if (snapProtoVPE.exists()) {
+          const data = snapProtoVPE.data();
+          if (data.NumeroProtocolo && data.NumeroProtocolo !== "" && data.NumeroProtocolo !== "NaN") {
+            results.vpe.protocolo = data.NumeroProtocolo;
+          }
+        }
+
+        // VPE: Consulta da documentação
         const snapDocVPE = await getDoc(doc(db, "documentacaoVPE", cpfFormatado));
         if (snapDocVPE.exists()) {
           const data = snapDocVPE.data();
@@ -100,7 +125,7 @@
             docObj.Pendencias = data.Pendencias;
           }
           if (Object.keys(docObj).length > 0) {
-            results.documentacao.push(docObj);
+            results.vpe.documentacao = docObj;
           }
         }
       } catch (error) {
@@ -111,27 +136,52 @@
       let html = `<div class="result-header"><h2>Dados para CPF: ${cpfFormatado}</h2></div>`;
 
       if (results.status) {
-        html += `<div class="card"><span class="label">Status:</span> <span class="value">${results.status}</span></div>`;
+        html += `<div class="card"><span class="label">Status do Associado:</span> ${formatValue(results.status, 'status')}</div>`;
       }
 
-      if (results.protocolos.length > 0) {
-        html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">PROTOCOLADO - ${results.protocolos.join(" | ")}</span></div>`;
-      }
-
-      if (results.documentacao.length > 0) {
-        results.documentacao.forEach(item => {
-          let conteudo = "";
-          if (item.Documentacao) {
-            conteudo += `<span class="label">Documentação:</span> <span class="value">${item.Documentacao}</span>`;
+      // Grupo Auxílio Moradia
+      if (results.auxilioMoradia.protocolo || results.auxilioMoradia.documentacao) {
+        html += `<div class="group-card"><h3>Auxílio Moradia</h3>`;
+        if (results.auxilioMoradia.protocolo) {
+          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.auxilioMoradia.protocolo}</span></div>`;
+        }
+        if (results.auxilioMoradia.documentacao) {
+          const docAM = results.auxilioMoradia.documentacao;
+          if (docAM.Documentacao) {
+            html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(docAM.Documentacao, 'documentacao')}</div>`;
           }
-          if (item.Pendencias) {
-            conteudo += `<br><span class="label">Pendências:</span> <span class="value">${item.Pendencias}</span>`;
+          if (docAM.Pendencias) {
+            html += `<div class="card"><span class="label">Pendências:</span> <span class="value">${docAM.Pendencias}</span></div>`;
           }
-          html += `<div class="card">${conteudo}</div>`;
-        });
+        }
+        html += `</div>`;
       }
 
-      if (!results.status && results.protocolos.length === 0 && results.documentacao.length === 0) {
+      // Grupo VPE (Vantagem Pecuniária Especial)
+      if (results.vpe.protocolo || results.vpe.documentacao) {
+        html += `<div class="group-card"><h3>VPE (Vantagem Pecuniária Especial)</h3>`;
+        if (results.vpe.protocolo) {
+          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.vpe.protocolo}</span></div>`;
+        }
+        if (results.vpe.documentacao) {
+          const docVPE = results.vpe.documentacao;
+          if (docVPE.Documentacao) {
+            html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(docVPE.Documentacao, 'documentacao')}</div>`;
+          }
+          if (docVPE.Pendencias) {
+            html += `<div class="card"><span class="label">Pendências:</span> <span class="value">${docVPE.Pendencias}</span></div>`;
+          }
+        }
+        html += `</div>`;
+      }
+
+      if (
+        !results.status &&
+        !results.auxilioMoradia.protocolo &&
+        !results.auxilioMoradia.documentacao &&
+        !results.vpe.protocolo &&
+        !results.vpe.documentacao
+      ) {
         html += `<div class="card"><span class="value">Nenhum dado encontrado para o CPF ${cpfFormatado}.</span></div>`;
       }
 
@@ -142,7 +192,6 @@
     window.consultarCPF = consultarCPF;
   </script>
   <style>
-    /* Importando uma fonte moderna */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
     body {
@@ -209,6 +258,19 @@
       margin-bottom: 15px;
     }
 
+    .group-card {
+      background-color: #fff;
+      border: 2px solid #007BFF;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .group-card h3 {
+      margin-top: 0;
+      color: #007BFF;
+    }
+
     .label {
       font-weight: 500;
       color: #555;
@@ -228,9 +290,9 @@
 </head>
 <body>
   <div class="container">
-    <h1>Consulta de Dados</h1>
+    <h1>Consultar Documentação</h1>
     <div class="form-group">
-      <input type="text" id="cpf" placeholder="Digite seu CPF (somente números)">
+      <input type="text" id="cpf" placeholder="Digite seu CPF (somente números)" />
       <button onclick="consultarCPF()">Consultar</button>
     </div>
     <div id="resultados"></div>
