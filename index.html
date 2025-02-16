@@ -60,17 +60,16 @@
       const itens = value.split(',').map(item => item.trim()).filter(item => item !== "");
       const processados = itens.map(item => {
         const itemUpper = item.toUpperCase();
-        // Se for FICHA FINANCEIRA, ativa a flag e não exibe aqui (ela terá box próprio)
+        // Se for FICHA FINANCEIRA, ativa a flag (mas não remove da listagem)
         if (itemUpper === "FICHA FINANCEIRA") {
           fichaFinanceiraPendente = true;
-          return null;
         }
         if (mapping[itemUpper]) {
           return `<a href="${mapping[itemUpper]}" target="_blank" class="link-doc">${item}</a>`;
         } else {
           return `<span class="value">${item}</span>`;
         }
-      }).filter(item => item !== null);
+      });
       return processados.join("<br>");
     }
 
@@ -197,7 +196,7 @@
       // Exibe o card de Status do Associado
       if (results.status) {
         html += `<div class="card"><span class="label">Status do Associado:</span> ${formatValue(results.status, 'status')}</div>`;
-        // Se o status for DESLIGADO e a documentação VPE estiver INCOMPLETA, exibe o box de alerta logo após o status
+        // Se o status for DESLIGADO e a documentação VPE estiver INCOMPLETA, exibe o box de alerta
         if (
           results.status.trim().toUpperCase() === "DESLIGADO" &&
           results.vpe.documentacao &&
@@ -215,52 +214,54 @@
       }
       
       // Grupo Auxílio Moradia
-      if (results.auxilioMoradia.protocolo || results.auxilioMoradia.documentacao) {
+      if (results.auxilioMoradia.protocolo || (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Documentacao)) {
         html += `<div class="group-card"><h3>Auxílio Moradia</h3>`;
+        // Se houver protocolo, exibe-o juntamente com "Documentação: COMPLETA"
         if (results.auxilioMoradia.protocolo) {
-          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.auxilioMoradia.protocolo}</span></div>`;
+          html += `<div class="card">
+                    <span class="label">Protocolo:</span> <span class="value">${results.auxilioMoradia.protocolo}</span><br>
+                    <span class="label">Documentação:</span> <span class="value" style="color: green;">COMPLETA</span>
+                   </div>`;
+        } else if (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Documentacao) {
+          // Se não houver protocolo, exibe a documentação conforme registrada
+          html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.auxilioMoradia.documentacao.Documentacao, 'documentacao')}</div>`;
         }
-        if (results.auxilioMoradia.documentacao) {
-          const docAM = results.auxilioMoradia.documentacao;
-          if (docAM.Documentacao) {
-            html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(docAM.Documentacao, 'documentacao')}</div>`;
-          }
-          if (docAM.Pendencias) {
-            html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(docAM.Pendencias, pendenciaLinksAUX)}</div>`;
-          }
+        // Exibe as pendências, se houver, inclusive "Ficha Financeira"
+        if (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Pendencias) {
+          html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.auxilioMoradia.documentacao.Pendencias, pendenciaLinksAUX)}</div>`;
         }
         html += `</div>`;
       }
       
       // Grupo VPE (Vantagem Pecuniária Especial)
-      if (results.vpe.protocolo || results.vpe.documentacao) {
+      if (results.vpe.protocolo || (results.vpe.documentacao && results.vpe.documentacao.Documentacao)) {
         html += `<div class="group-card"><h3>VPE (Vantagem Pecuniária Especial)</h3>`;
+        // Se houver protocolo, exibe-o juntamente com "Documentação: COMPLETA"
         if (results.vpe.protocolo) {
-          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.vpe.protocolo}</span></div>`;
+          html += `<div class="card">
+                    <span class="label">Protocolo:</span> <span class="value">${results.vpe.protocolo}</span><br>
+                    <span class="label">Documentação:</span> <span class="value" style="color: green;">COMPLETA</span>
+                   </div>`;
+        } else if (results.vpe.documentacao && results.vpe.documentacao.Documentacao) {
+          html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.vpe.documentacao.Documentacao, 'documentacao')}</div>`;
         }
-        if (results.vpe.documentacao) {
-          const docVPE = results.vpe.documentacao;
-          if (docVPE.Documentacao) {
-            html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(docVPE.Documentacao, 'documentacao')}</div>`;
+        if (results.vpe.documentacao && results.vpe.documentacao.Pendencias) {
+          html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.vpe.documentacao.Pendencias, pendenciaLinksVPE)}</div>`;
+        }
+        if (results.vpe.documentacao && results.vpe.documentacao["RÚBRICA"]) {
+          let rubricaVal = results.vpe.documentacao["RÚBRICA"].trim();
+          let rubricaFormatted = `<span class="value">${rubricaVal}</span>`;
+          if (rubricaVal.toUpperCase() === "NÃO RECEBE") {
+            rubricaFormatted = `<span class="value" style="color: red;">${rubricaVal}</span>`;
+          } else if (rubricaVal.toUpperCase() === "RECEBE") {
+            rubricaFormatted = `<span class="value" style="color: green;">${rubricaVal}</span>`;
           }
-          if (docVPE.Pendencias) {
-            html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(docVPE.Pendencias, pendenciaLinksVPE)}</div>`;
-          }
-          if (docVPE["RÚBRICA"]) {
-            let rubricaVal = docVPE["RÚBRICA"].trim();
-            let rubricaFormatted = `<span class="value">${rubricaVal}</span>`;
-            if (rubricaVal.toUpperCase() === "NÃO RECEBE") {
-              rubricaFormatted = `<span class="value" style="color: red;">${rubricaVal}</span>`;
-            } else if (rubricaVal.toUpperCase() === "RECEBE") {
-              rubricaFormatted = `<span class="value" style="color: green;">${rubricaVal}</span>`;
-            }
-            html += `<div class="card"><span class="label">Rúbrica:</span> ${rubricaFormatted}</div>`;
-          }
+          html += `<div class="card"><span class="label">Rúbrica:</span> ${rubricaFormatted}</div>`;
         }
         html += `</div>`;
       }
       
-      // Se houver protocolo em Auxílio Moradia ou VPE, exibe o box de protocolo
+      // Se houver protocolo em Auxílio Moradia ou VPE, exibe o box de informação de protocolo
       if (results.auxilioMoradia.protocolo || results.vpe.protocolo) {
         html += `
           <div class="info-box">
@@ -269,7 +270,7 @@
         `;
       }
       
-      // Exibe box específico para Ficha Financeira pendente (se houver)
+      // Exibe box específico para Ficha Financeira pendente (caso esteja entre as pendências)
       if (fichaFinanceiraPendente) {
         html += `
           <div class="alert-box">
@@ -284,7 +285,7 @@
         `;
       }
       
-      // Verifica se há pendências em Auxílio Moradia ou VPE e exibe o box de orientação para envio dos documentos pendentes
+      // Exibe box de orientação para envio de documentos pendentes (caso haja pendências em Auxílio Moradia ou VPE)
       if (
         (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Pendencias) ||
         (results.vpe.documentacao && results.vpe.documentacao.Pendencias)
@@ -450,7 +451,7 @@
       text-decoration: underline;
     }
     
-    /* Estilo para os boxes de alerta e orientação */
+    /* Estilos para os boxes de alerta, informação e orientação */
     .alert-box {
       margin-top: 20px;
       margin-bottom: 20px;
