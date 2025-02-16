@@ -50,9 +50,8 @@
       "DECLARAÇÃO DE INEXISTENCIA DE AÇÃO AUX": "https://drive.google.com/file/d/1rt4tOVPEQuU7Nj1mHEIMlx25L2ZqaXjp/view?usp=drive_link"
     };
 
-    // Flag para indicar se a documentação VPE está INCOMPLETA
+    // Flags para indicar pendências específicas
     let docVPEIncomplete = false;
-    // Flag para indicar se há pendência de Ficha Financeira
     let fichaFinanceiraPendente = false;
 
     // Função que processa o valor das pendências.
@@ -61,7 +60,7 @@
       const itens = value.split(',').map(item => item.trim()).filter(item => item !== "");
       const processados = itens.map(item => {
         const itemUpper = item.toUpperCase();
-        // Se for FICHA FINANCEIRA, marca a flag e não o inclui na listagem
+        // Se for FICHA FINANCEIRA, ativa a flag e não exibe aqui (ela terá box próprio)
         if (itemUpper === "FICHA FINANCEIRA") {
           fichaFinanceiraPendente = true;
           return null;
@@ -261,7 +260,7 @@
         html += `</div>`;
       }
       
-      // Se houver protocolo em Auxílio Moradia ou VPE, exibe o box com a mensagem de protocolo
+      // Se houver protocolo em Auxílio Moradia ou VPE, exibe o box de protocolo
       if (results.auxilioMoradia.protocolo || results.vpe.protocolo) {
         html += `
           <div class="info-box">
@@ -270,7 +269,7 @@
         `;
       }
       
-      // Exibe box de Ficha Financeira pendente, se houver
+      // Exibe box específico para Ficha Financeira pendente (se houver)
       if (fichaFinanceiraPendente) {
         html += `
           <div class="alert-box">
@@ -281,6 +280,48 @@
             <p>
               Para saber como solicitar a Ficha Financeira, <a href="https://www.gov.br/servidor/pt-br/acesso-a-informacao/faq/sou-gov.br/ficha-financeira-anual/1-como-consulto-ficha-financeira-anual-no-aplicativo-sou-gov-br" target="_blank">clique aqui</a>.
             </p>
+          </div>
+        `;
+      }
+      
+      // Verifica se há pendências em Auxílio Moradia ou VPE e exibe o box de orientação para envio dos documentos pendentes
+      if (
+        (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Pendencias) ||
+        (results.vpe.documentacao && results.vpe.documentacao.Pendencias)
+      ) {
+        html += `
+          <div class="message-block">
+            <p><strong>📢 Atenção! Envio de Documentos Pendentes</strong></p>
+            <p>
+              Por favor, encaminhe os documentos pendentes devidamente escaneados para o e-mail:<br>
+              <strong>📧 documentos@apipmcbdf.com.br</strong> (exclusivo para envio de documentos)
+            </p>
+            <p>Assunto do e-mail: <strong>Documentação Pendente</strong></p>
+            <p><strong>⚠️ Importante:</strong></p>
+            <p>
+              Certifique-se de que os documentos estejam escaneados em alta qualidade para garantir a legibilidade.<br>
+              O envio dos documentos originais também é obrigatório e pode ser feito das seguintes formas:
+            </p>
+            <p>
+              <strong>📮 Por correio:</strong><br>
+              Rua Evaristo da Veiga, 55, 10º andar<br>
+              CEP: 20031-040
+            </p>
+            <p>
+              <strong>🙋 Entrega pessoalmente:</strong><br>
+              No mesmo endereço, durante o horário de atendimento: 09h às 13h
+            </p>
+            <p>
+              Caso tenha dúvidas, entre em contato pelos canais abaixo:
+            </p>
+            <p>
+              <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
+              <strong>💬 WhatsApp:</strong> (21) 98499-7413
+            </p>
+            <p>
+              <strong>📧 Para informações e dúvidas gerais:</strong> atendimento@apipmcbdf.com.br
+            </p>
+            <p>Agradecemos sua atenção e colaboração!</p>
           </div>
         `;
       }
@@ -409,7 +450,7 @@
       text-decoration: underline;
     }
     
-    /* Estilo para o box de alerta (status DESLIGADO e Ficha Financeira) */
+    /* Estilo para os boxes de alerta e orientação */
     .alert-box {
       margin-top: 20px;
       margin-bottom: 20px;
@@ -422,7 +463,6 @@
       line-height: 1.6;
     }
     
-    /* Estilo para o box de informações de protocolo */
     .info-box {
       margin-top: 20px;
       padding: 15px;
@@ -434,7 +474,6 @@
       line-height: 1.6;
     }
     
-    /* Estilo para o box de instruções para envio dos documentos */
     .message-block {
       margin-top: 20px;
       padding: 15px;
@@ -447,6 +486,7 @@
     }
     
     .alert-box p,
+    .info-box p,
     .message-block p {
       margin: 10px 0;
     }
