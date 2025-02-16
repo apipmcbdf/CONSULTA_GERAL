@@ -60,7 +60,10 @@
       const itens = value.split(',').map(item => item.trim()).filter(item => item !== "");
       const processados = itens.map(item => {
         const itemUpper = item.toUpperCase();
-        // O item "Ficha Financeira" será exibido normalmente (com link se houver) e acionará o box de orientação
+        // Se o item for "Ficha Financeira", ativa a flag
+        if (itemUpper === "FICHA FINANCEIRA") {
+          fichaFinanceiraPendente = true;
+        }
         if (mapping[itemUpper]) {
           return `<a href="${mapping[itemUpper]}" target="_blank" class="link-doc">${item}</a>`;
         } else {
@@ -253,6 +256,21 @@
           html += `<div class="card"><span class="label">Rúbrica:</span> ${rubricaFormatted}</div>`;
         }
         html += `</div>`;
+      }
+      
+      // Exibe o alerta específico para Ficha Financeira, se houver pendência
+      if (fichaFinanceiraPendente) {
+        html += `
+          <div class="alert-box">
+            <p>
+              A Ficha Financeira está pendente e deve ser providenciada desde o início da pensão até 2024.
+              Essa documentação será utilizada para calcular os valores devidos pela União.
+            </p>
+            <p>
+              Para saber como solicitar a Ficha Financeira, <a href="https://www.gov.br/servidor/pt-br/acesso-a-informacao/faq/sou-gov.br/ficha-financeira-anual/1-como-consulto-ficha-financeira-anual-no-aplicativo-sou-gov-br" target="_blank">clique aqui</a>.
+            </p>
+          </div>
+        `;
       }
       
       // Box de orientação para envio de documentos pendentes (se houver pendências em qualquer grupo)
