@@ -50,18 +50,28 @@
       "DECLARAÇÃO DE INEXISTENCIA DE AÇÃO AUX": "https://drive.google.com/file/d/1rt4tOVPEQuU7Nj1mHEIMlx25L2ZqaXjp/view?usp=drive_link"
     };
 
+    // Flag para indicar se a documentação VPE está INCOMPLETA
+    let docVPEIncomplete = false;
+    // Flag para indicar se há pendência de Ficha Financeira
+    let fichaFinanceiraPendente = false;
+
     // Função que processa o valor das pendências.
     // Se houver múltiplos itens separados por vírgula, cada um é tratado individualmente.
     function getPendenciaLinkHTML(value, mapping) {
       const itens = value.split(',').map(item => item.trim()).filter(item => item !== "");
       const processados = itens.map(item => {
         const itemUpper = item.toUpperCase();
+        // Se for FICHA FINANCEIRA, marca a flag e não o inclui na listagem
+        if (itemUpper === "FICHA FINANCEIRA") {
+          fichaFinanceiraPendente = true;
+          return null;
+        }
         if (mapping[itemUpper]) {
           return `<a href="${mapping[itemUpper]}" target="_blank" class="link-doc">${item}</a>`;
         } else {
           return `<span class="value">${item}</span>`;
         }
-      });
+      }).filter(item => item !== null);
       return processados.join("<br>");
     }
 
@@ -89,20 +99,18 @@
       return `<span class="value">${value}</span>`;
     }
 
-    // Flag para indicar se a documentação VPE está INCOMPLETA
-    let docVPEIncomplete = false;
-
     // Consulta os dados do CPF e agrupa em "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
     async function consultarCPF() {
+      // Reseta as flags a cada consulta
+      docVPEIncomplete = false;
+      fichaFinanceiraPendente = false;
+      
       const cpfInput = document.getElementById('cpf').value;
       if (!cpfInput) {
         alert("Por favor, informe o CPF.");
         return;
       }
       const cpfFormatado = formatarCPF(cpfInput);
-
-      // Reinicia a flag de documentação incompleta
-      docVPEIncomplete = false;
 
       let results = {
         status: null,
@@ -219,7 +227,7 @@
             html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(docAM.Documentacao, 'documentacao')}</div>`;
           }
           if (docAM.Pendencias) {
-            html += `<div class="card"><span class="label">Pendências:</span> ${getPendenciaLinkHTML(docAM.Pendencias, pendenciaLinksAUX)}</div>`;
+            html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(docAM.Pendencias, pendenciaLinksAUX)}</div>`;
           }
         }
         html += `</div>`;
@@ -237,7 +245,7 @@
             html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(docVPE.Documentacao, 'documentacao')}</div>`;
           }
           if (docVPE.Pendencias) {
-            html += `<div class="card"><span class="label">Pendências:</span> ${getPendenciaLinkHTML(docVPE.Pendencias, pendenciaLinksVPE)}</div>`;
+            html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(docVPE.Pendencias, pendenciaLinksVPE)}</div>`;
           }
           if (docVPE["RÚBRICA"]) {
             let rubricaVal = docVPE["RÚBRICA"].trim();
@@ -262,6 +270,21 @@
         `;
       }
       
+      // Exibe box de Ficha Financeira pendente, se houver
+      if (fichaFinanceiraPendente) {
+        html += `
+          <div class="alert-box">
+            <p>
+              A Ficha Financeira está pendente e deve ser providenciada desde o início da pensão até 2024.
+              Essa documentação será utilizada para calcular os valores devidos pela União.
+            </p>
+            <p>
+              Para saber como solicitar a Ficha Financeira, <a href="https://www.gov.br/servidor/pt-br/acesso-a-informacao/faq/sou-gov.br/ficha-financeira-anual/1-como-consulto-ficha-financeira-anual-no-aplicativo-sou-gov-br" target="_blank">clique aqui</a>.
+            </p>
+          </div>
+        `;
+      }
+      
       // Se não houver nenhum dado encontrado, exibe mensagem
       if (
         !results.status &&
@@ -273,35 +296,6 @@
         html += `<div class="card"><span class="value">Nenhum dado encontrado para o CPF ${cpfFormatado}.</span></div>`;
       }
       
-      // Ao final, exibe o box com as instruções para envio dos documentos (caso a documentação VPE esteja INCOMPLETA)
-      if (docVPEIncomplete) {
-        html += `
-          <div class="message-block">
-            <p>
-              Por favor, envie os documentos pendentes devidamente escaneados para o e-mail <strong>documentos@apipmcbdf.com.br</strong> com o assunto <em>"Documentação Pendente VPE"</em>.
-            </p>
-            <p>
-              É importante que os documentos sejam escaneados em alta qualidade para garantir sua legibilidade. Além disso, o envio dos originais é obrigatório e pode ser realizado das seguintes formas:
-            </p>
-            <p>
-              <strong>✉️ Por correio</strong><br>
-              Rua Evaristo da Veiga, 55, 10º andar<br>
-              CEP: 20031-040
-            </p>
-            <p>
-              <strong>🙋 Entrega pessoalmente</strong><br>
-              No mesmo endereço, durante o horário de atendimento (das 09h às 13h).
-            </p>
-            <p>Se preferir, você também pode entrar em contato conosco para mais informações:</p>
-            <p>
-              <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
-              <strong>💬 WhatsApp:</strong> 21 98499-7413
-            </p>
-            <p>Caso tenha dúvidas, estamos à disposição para auxiliá-lo(a).</p>
-          </div>
-        `;
-      }
-
       document.getElementById('resultados').innerHTML = html;
     }
 
@@ -415,7 +409,7 @@
       text-decoration: underline;
     }
     
-    /* Estilo para o box de alerta (status DESLIGADO) */
+    /* Estilo para o box de alerta (status DESLIGADO e Ficha Financeira) */
     .alert-box {
       margin-top: 20px;
       margin-bottom: 20px;
