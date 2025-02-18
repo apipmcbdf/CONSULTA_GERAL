@@ -340,7 +340,7 @@
           }
         }
 
-        // VPE: Documentação (incluindo RÚBRICA)
+        // VPE: Documentação (incluindo RÚBRICA e LISTAGEM)
         const snapDocVPE = await getDoc(doc(db, "documentacaoVPE", cpfFormatado));
         if (snapDocVPE.exists()) {
           const data = snapDocVPE.data();
@@ -356,6 +356,9 @@
           }
           if (data["RÚBRICA"] && data["RÚBRICA"] !== "" && data["RÚBRICA"] !== "NaN") {
             docObj["RÚBRICA"] = data["RÚBRICA"];
+          }
+          if (data["LISTAGEM"] && data["LISTAGEM"] !== "" && data["LISTAGEM"] !== "NaN") {
+            docObj["LISTAGEM"] = data["LISTAGEM"];
           }
           if (Object.keys(docObj).length > 0) {
             results.vpe.documentacao = docObj;
@@ -424,7 +427,10 @@
           let rubricaFormatted = `<span class="value">${rubricaVal}</span>`;
           if (rubricaVal.toUpperCase() === "NÃO RECEBE") {
             rubricaFormatted = `<span class="value" style="color: red;">${rubricaVal}</span>`;
-            rubricaFormatted += `<br><span class="label">Listagem:</span> <span class="value">LISTAGEM</span>`;
+            if (results.vpe.documentacao["LISTAGEM"]) {
+              let listagemVal = results.vpe.documentacao["LISTAGEM"].trim();
+              rubricaFormatted += `<br><span class="label">Listagem:</span> <span class="value">${listagemVal}</span>`;
+            }
           } else if (rubricaVal.toUpperCase() === "RECEBE") {
             rubricaFormatted = `<span class="value" style="color: green;">${rubricaVal}</span>`;
           }
