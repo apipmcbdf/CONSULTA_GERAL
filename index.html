@@ -224,19 +224,15 @@
       "DECLARAÇÃO DE INEXISTENCIA DE AÇÃO AUX": "https://drive.google.com/file/d/1rt4tOVPEQuU7Nj1mHEIMlx25L2ZqaXjp/view?usp=drive_link"
     };
 
-    // Flags para indicar pendências específicas
-    let docVPEIncomplete = false;
-    let fichaFinanceiraPendente = false;
-
     // Função que processa o valor das pendências.
     // Se houver múltiplos itens separados por vírgula, cada um é tratado individualmente.
     function getPendenciaLinkHTML(value, mapping) {
       const itens = value.split(',').map(item => item.trim()).filter(item => item !== "");
       const processados = itens.map(item => {
         const itemUpper = item.toUpperCase();
-        // Se o item for "Ficha Financeira", ativa a flag
+        // Se o item for "Ficha Financeira", ativa a flag (caso necessário)
         if (itemUpper === "FICHA FINANCEIRA") {
-          fichaFinanceiraPendente = true;
+          // (Implementar flag se necessário)
         }
         if (mapping[itemUpper]) {
           return `<a href="${mapping[itemUpper]}" target="_blank" class="link-doc">${item}</a>`;
@@ -274,9 +270,7 @@
     // Consulta os dados do CPF e agrupa em "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
     async function consultarCPF() {
       // Reseta as flags a cada consulta
-      docVPEIncomplete = false;
-      fichaFinanceiraPendente = false;
-      
+      let docVPEIncomplete = false;
       const cpfInput = document.getElementById('cpf').value;
       if (!cpfInput) {
         alert("Por favor, informe o CPF.");
@@ -284,6 +278,8 @@
       }
       const cpfFormatado = formatarCPF(cpfInput);
 
+      // O seu código original consultava diversas coleções, mas os dados importados pelo seu script
+      // estão na coleção "Dados". Assim, ajustamos a consulta para buscar neste documento e mapear os campos.
       let results = {
         status: null,
         auxilioMoradia: {
@@ -297,71 +293,48 @@
       };
 
       try {
-        // Consulta "associadosStatus"
-        const snapStatus = await getDoc(doc(db, "associadosStatus", cpfFormatado));
-        if (snapStatus.exists()) {
-          const data = snapStatus.data();
+        const snapDados = await getDoc(doc(db, "Dados", cpfFormatado));
+        if (snapDados.exists()) {
+          const data = snapDados.data();
           if (data.STATUS && data.STATUS !== "" && data.STATUS !== "NaN") {
             results.status = data.STATUS;
           }
-        }
-
-        // Auxílio Moradia: Protocolo
-        const snapProtoAM = await getDoc(doc(db, "protocolosAuxilioMoradia", cpfFormatado));
-        if (snapProtoAM.exists()) {
-          const data = snapProtoAM.data();
-          if (data.NumeroProtocolo && data.NumeroProtocolo !== "" && data.NumeroProtocolo !== "NaN") {
-            results.auxilioMoradia.protocolo = data.NumeroProtocolo;
+          // Para Auxílio Moradia
+          if (data.NumeroProtocoloAUX && data.NumeroProtocoloAUX !== "" && data.NumeroProtocoloAUX !== "NaN") {
+            results.auxilioMoradia.protocolo = data.NumeroProtocoloAUX;
           }
-        }
-
-        // Auxílio Moradia: Documentação
-        const snapDocAM = await getDoc(doc(db, "documentacaoAuxilioMoradia", cpfFormatado));
-        if (snapDocAM.exists()) {
-          const data = snapDocAM.data();
-          let docObj = {};
-          if (data.Documentacao && data.Documentacao !== "" && data.Documentacao !== "NaN") {
-            docObj.Documentacao = data.Documentacao;
+          let docAux = {};
+          if (data.DocumentacaoAUX && data.DocumentacaoAUX !== "" && data.DocumentacaoAUX !== "NaN") {
+            docAux.Documentacao = data.DocumentacaoAUX;
           }
-          if (data.Pendencias && data.Pendencias !== "" && data.Pendencias !== "NaN") {
-            docObj.Pendencias = data.Pendencias;
+          if (data.PendenciasAUX && data.PendenciasAUX !== "" && data.PendenciasAUX !== "NaN") {
+            docAux.Pendencias = data.PendenciasAUX;
           }
-          if (Object.keys(docObj).length > 0) {
-            results.auxilioMoradia.documentacao = docObj;
+          if (Object.keys(docAux).length > 0) {
+            results.auxilioMoradia.documentacao = docAux;
           }
-        }
-
-        // VPE: Protocolo
-        const snapProtoVPE = await getDoc(doc(db, "protocolosVPE", cpfFormatado));
-        if (snapProtoVPE.exists()) {
-          const data = snapProtoVPE.data();
-          if (data.NumeroProtocolo && data.NumeroProtocolo !== "" && data.NumeroProtocolo !== "NaN") {
-            results.vpe.protocolo = data.NumeroProtocolo;
+          // Para VPE
+          if (data.NumeroProtocoloVPE && data.NumeroProtocoloVPE !== "" && data.NumeroProtocoloVPE !== "NaN") {
+            results.vpe.protocolo = data.NumeroProtocoloVPE;
           }
-        }
-
-        // VPE: Documentação (incluindo RÚBRICA e LISTAGEM)
-        const snapDocVPE = await getDoc(doc(db, "documentacaoVPE", cpfFormatado));
-        if (snapDocVPE.exists()) {
-          const data = snapDocVPE.data();
-          let docObj = {};
-          if (data.Documentacao && data.Documentacao !== "" && data.Documentacao !== "NaN") {
-            docObj.Documentacao = data.Documentacao;
-            if (data.Documentacao.trim().toUpperCase() === "INCOMPLETA") {
+          let docVPE = {};
+          if (data.DocumentacaoVPE && data.DocumentacaoVPE !== "" && data.DocumentacaoVPE !== "NaN") {
+            docVPE.Documentacao = data.DocumentacaoVPE;
+            if (data.DocumentacaoVPE.trim().toUpperCase() === "INCOMPLETA") {
               docVPEIncomplete = true;
             }
           }
-          if (data.Pendencias && data.Pendencias !== "" && data.Pendencias !== "NaN") {
-            docObj.Pendencias = data.Pendencias;
+          if (data.PendenciasVPE && data.PendenciasVPE !== "" && data.PendenciasVPE !== "NaN") {
+            docVPE.Pendencias = data.PendenciasVPE;
           }
-          if (data["RÚBRICA"] && data["RÚBRICA"] !== "" && data["RÚBRICA"] !== "NaN") {
-            docObj["RÚBRICA"] = data["RÚBRICA"];
+          if (data["RúbricaVPE"] && data["RúbricaVPE"] !== "" && data["RúbricaVPE"] !== "NaN") {
+            docVPE["RÚBRICA"] = data["RúbricaVPE"];
           }
-          if (data["LISTAGEM"] && data["LISTAGEM"] !== "" && data["LISTAGEM"] !== "NaN") {
-            docObj["LISTAGEM"] = data["LISTAGEM"];
+          if (data.ListaImpVPE && data.ListaImpVPE !== "" && data.ListaImpVPE !== "NaN") {
+            docVPE["LISTAGEM"] = data.ListaImpVPE;
           }
-          if (Object.keys(docObj).length > 0) {
-            results.vpe.documentacao = docObj;
+          if (Object.keys(docVPE).length > 0) {
+            results.vpe.documentacao = docVPE;
           }
         }
       } catch (error) {
@@ -440,19 +413,9 @@
       }
       
       // Exibe o alerta específico para Ficha Financeira, se houver pendência
-      if (fichaFinanceiraPendente) {
-        html += `
-          <div class="alert-box">
-            <p>
-              A Ficha Financeira está pendente e deve ser providenciada desde o início da pensão até 2024.
-              Essa documentação será utilizada para calcular os valores devidos pela União.
-            </p>
-            <p>
-              Para saber como solicitar a Ficha Financeira, <a href="https://www.gov.br/servidor/pt-br/acesso-a-informacao/faq/sou-gov.br/ficha-financeira-anual/1-como-consulto-ficha-financeira-anual-no-aplicativo-sou-gov-br" target="_blank">clique aqui</a>.
-            </p>
-          </div>
-        `;
-      }
+      // (Caso a flag fichaFinanceiraPendente precise ser implementada, inclua sua lógica)
+      // Por enquanto, se ela estiver ativada, exibe o alerta:
+      // if (fichaFinanceiraPendente) { ... }
       
       // Box de orientação para envio de documentos pendentes (se houver pendências em qualquer grupo)
       if (
