@@ -232,7 +232,7 @@
         const itemUpper = item.toUpperCase();
         // Se o item for "Ficha Financeira", ativa a flag (caso necessário)
         if (itemUpper === "FICHA FINANCEIRA") {
-          // (Implementar flag se necessário)
+          // Aqui você pode implementar alguma lógica específica se necessário
         }
         if (mapping[itemUpper]) {
           return `<a href="${mapping[itemUpper]}" target="_blank" class="link-doc">${item}</a>`;
@@ -434,6 +434,22 @@
           html += `<div class="card"><span class="label">Relação de 2008:</span> <span class="value">${results.vpe.amfeta}</span></div>`;
         }
         html += `</div>`;
+      }
+      
+      // Adiciona mensagem extra se houver pendência de "Ficha Financeira" em qualquer grupo
+      if (
+        (results.auxilioMoradia.pendencias && results.auxilioMoradia.pendencias.toUpperCase().includes("FICHA FINANCEIRA")) ||
+        (results.vpe.pendencias && results.vpe.pendencias.toUpperCase().includes("FICHA FINANCEIRA"))
+      ) {
+        html += `
+          <div class="alert-box">
+            <p>⚠️ Atenção: Consta pendente a Ficha Financeira, documento necessário para o cálculo dos valores retroativos devidos pela União.</p>
+            <p>🔎 Para consultar e emitir sua ficha financeira anual, acesse o passo a passo no link:<br>
+              <a href="https://www.gov.br/servidor/pt-br/acesso-a-informacao/faq/sou-gov.br/ficha-financeira-anual/1-como-consulto-ficha-financeira-anual-no-aplicativo-sou-gov-br" target="_blank" class="link-doc">
+              https://www.gov.br/servidor/pt-br/acesso-a-informacao/faq/sou-gov.br/ficha-financeira-anual/1-como-consulto-ficha-financeira-anual-no-aplicativo-sou-gov-br</a>
+            </p>
+          </div>
+        `;
       }
       
       // Box de orientação para envio de documentos pendentes (se houver pendências em qualquer grupo)
