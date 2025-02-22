@@ -389,7 +389,7 @@
           html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.auxilioMoradia.pendencias, pendenciaLinksAUX)}</div>`;
         }
         if (results.auxilioMoradia.rubrica) {
-          html += `<div class="card"><span class="label">Rúbrica:</span> <span class="value">${results.auxilioMoradia.rubrica}</span></div>`;
+          html += `<div class="card"><span class="label">Situação:</span> <span class="value">${results.auxilioMoradia.rubrica}</span></div>`;
         }
         html += `</div>`;
       }
@@ -422,7 +422,7 @@
           } else if (rubricaVal.toUpperCase() === "RECEBE") {
             rubricaFormatted = `<span class="value" style="color: green;">${rubricaVal}</span>`;
           }
-          html += `<div class="card"><span class="label">Rúbrica:</span> ${rubricaFormatted}</div>`;
+          html += `<div class="card"><span class="label">Situação:</span> ${rubricaFormatted}</div>`;
         }
         if (results.vpe.documentacao) {
           html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.vpe.documentacao, 'documentacao')}</div>`;
