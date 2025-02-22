@@ -417,7 +417,7 @@
             rubricaFormatted = `<span class="value" style="color: red;">${rubricaVal}</span>`;
             if (results.vpe.listagem) {
               let listagemVal = results.vpe.listagem.trim();
-              rubricaFormatted += `<br><span class="label">Listagem:</span> <span class="value">${listagemVal}</span>`;
+              rubricaFormatted += `<br><span class="label">Listagem de implantação:</span> <span class="value">${listagemVal}</span>`;
             }
           } else if (rubricaVal.toUpperCase() === "RECEBE") {
             rubricaFormatted = `<span class="value" style="color: green;">${rubricaVal}</span>`;
@@ -428,7 +428,7 @@
           html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.vpe.documentacao, 'documentacao')}</div>`;
         }
         if (results.vpe.listagem && (!results.vpe.rubrica || (results.vpe.rubrica && results.vpe.rubrica.trim().toUpperCase() !== "NÃO RECEBE"))) {
-          html += `<div class="card"><span class="label">Listagem:</span> <span class="value">${results.vpe.listagem}</span></div>`;
+          html += `<div class="card"><span class="label">Listagem de implantação:</span> <span class="value">${results.vpe.listagem}</span></div>`;
         }
         if (results.vpe.amfeta) {
           html += `<div class="card"><span class="label">Relação de 2008:</span> <span class="value">${results.vpe.amfeta}</span></div>`;
