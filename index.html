@@ -383,7 +383,7 @@
           html += `<div class="card"><span class="label">Listagem 2008:</span> <span class="value">${results.auxilioMoradia.amfeta}</span></div>`;
         }
         if (results.auxilioMoradia.protocolo) {
-          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.auxilioMoradia.protocolo}</span></div>`;
+          html += `<div class="card"><span class="label">Número de processo:</span> <span class="value">${results.auxilioMoradia.protocolo}</span></div>`;
         }
         if (results.auxilioMoradia.pendencias) {
           html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.auxilioMoradia.pendencias, pendenciaLinksAUX)}</div>`;
@@ -405,7 +405,7 @@
       ) {
         html += `<div class="group-card"><h3>VPE (Vantagem Pecuniária Especial)</h3>`;
         if (results.vpe.protocolo) {
-          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.vpe.protocolo}</span></div>`;
+          html += `<div class="card"><span class="label">Número de processo:</span> <span class="value">${results.vpe.protocolo}</span></div>`;
         }
         if (results.vpe.pendencias) {
           html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.vpe.pendencias, pendenciaLinksVPE)}</div>`;
