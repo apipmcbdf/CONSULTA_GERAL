@@ -269,8 +269,6 @@
 
     // Consulta os dados do CPF e agrupa em "Auxílio Moradia" e "VPE (Vantagem Pecuniária Especial)"
     async function consultarCPF() {
-      // Reseta as flags a cada consulta
-      let docVPEIncomplete = false;
       const cpfInput = document.getElementById('cpf').value;
       if (!cpfInput) {
         alert("Por favor, informe o CPF.");
@@ -278,19 +276,26 @@
       }
       const cpfFormatado = formatarCPF(cpfInput);
 
-      // O seu código original consultava diversas coleções, mas os dados importados pelo seu script
-      // estão na coleção "Dados". Assim, ajustamos a consulta para buscar neste documento e mapear os campos.
       let results = {
         status: null,
         auxilioMoradia: {
+          documentacao: null,
+          amfeta: null,
           protocolo: null,
-          documentacao: null
+          pendencias: null,
+          rubrica: null
         },
         vpe: {
           protocolo: null,
-          documentacao: null
+          pendencias: null,
+          rubrica: null,
+          documentacao: null,
+          listagem: null,
+          amfeta: null
         }
       };
+
+      let docVPEIncomplete = false;
 
       try {
         const snapDados = await getDoc(doc(db, "Dados", cpfFormatado));
@@ -299,42 +304,43 @@
           if (data.STATUS && data.STATUS !== "" && data.STATUS !== "NaN") {
             results.status = data.STATUS;
           }
-          // Para Auxílio Moradia
+          // Auxílio Moradia
+          if (data.DocumentacaoAUX && data.DocumentacaoAUX !== "" && data.DocumentacaoAUX !== "NaN") {
+            results.auxilioMoradia.documentacao = data.DocumentacaoAUX;
+          }
+          if (data.AmfetaAUX && data.AmfetaAUX !== "" && data.AmfetaAUX !== "NaN") {
+            results.auxilioMoradia.amfeta = data.AmfetaAUX;
+          }
           if (data.NumeroProtocoloAUX && data.NumeroProtocoloAUX !== "" && data.NumeroProtocoloAUX !== "NaN") {
             results.auxilioMoradia.protocolo = data.NumeroProtocoloAUX;
           }
-          let docAux = {};
-          if (data.DocumentacaoAUX && data.DocumentacaoAUX !== "" && data.DocumentacaoAUX !== "NaN") {
-            docAux.Documentacao = data.DocumentacaoAUX;
-          }
           if (data.PendenciasAUX && data.PendenciasAUX !== "" && data.PendenciasAUX !== "NaN") {
-            docAux.Pendencias = data.PendenciasAUX;
+            results.auxilioMoradia.pendencias = data.PendenciasAUX;
           }
-          if (Object.keys(docAux).length > 0) {
-            results.auxilioMoradia.documentacao = docAux;
+          if (data.RúbricaAUX && data.RúbricaAUX !== "" && data.RúbricaAUX !== "NaN") {
+            results.auxilioMoradia.rubrica = data.RúbricaAUX;
           }
-          // Para VPE
+          // VPE (Vantagem Pecuniária Especial)
           if (data.NumeroProtocoloVPE && data.NumeroProtocoloVPE !== "" && data.NumeroProtocoloVPE !== "NaN") {
             results.vpe.protocolo = data.NumeroProtocoloVPE;
           }
-          let docVPE = {};
+          if (data.PendenciasVPE && data.PendenciasVPE !== "" && data.PendenciasVPE !== "NaN") {
+            results.vpe.pendencias = data.PendenciasVPE;
+          }
+          if (data.RúbricaVPE && data.RúbricaVPE !== "" && data.RúbricaVPE !== "NaN") {
+            results.vpe.rubrica = data.RúbricaVPE;
+          }
           if (data.DocumentacaoVPE && data.DocumentacaoVPE !== "" && data.DocumentacaoVPE !== "NaN") {
-            docVPE.Documentacao = data.DocumentacaoVPE;
+            results.vpe.documentacao = data.DocumentacaoVPE;
             if (data.DocumentacaoVPE.trim().toUpperCase() === "INCOMPLETA") {
               docVPEIncomplete = true;
             }
           }
-          if (data.PendenciasVPE && data.PendenciasVPE !== "" && data.PendenciasVPE !== "NaN") {
-            docVPE.Pendencias = data.PendenciasVPE;
-          }
-          if (data["RúbricaVPE"] && data["RúbricaVPE"] !== "" && data["RúbricaVPE"] !== "NaN") {
-            docVPE["RÚBRICA"] = data["RúbricaVPE"];
-          }
           if (data.ListaImpVPE && data.ListaImpVPE !== "" && data.ListaImpVPE !== "NaN") {
-            docVPE["LISTAGEM"] = data.ListaImpVPE;
+            results.vpe.listagem = data.ListaImpVPE;
           }
-          if (Object.keys(docVPE).length > 0) {
-            results.vpe.documentacao = docVPE;
+          if (data.AmfetaVPE && data.AmfetaVPE !== "" && data.AmfetaVPE !== "NaN") {
+            results.vpe.amfeta = data.AmfetaVPE;
           }
         }
       } catch (error) {
@@ -349,8 +355,7 @@
         if (
           results.status.trim().toUpperCase() === "DESLIGADO" &&
           results.vpe.documentacao &&
-          results.vpe.documentacao.Documentacao &&
-          results.vpe.documentacao.Documentacao.trim().toUpperCase() === "INCOMPLETA"
+          results.vpe.documentacao.trim().toUpperCase() === "INCOMPLETA"
         ) {
           html += `
             <div class="alert-box">
@@ -363,45 +368,55 @@
       }
       
       // Grupo Auxílio Moradia
-      if (results.auxilioMoradia.protocolo || (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Documentacao)) {
+      if (
+        results.auxilioMoradia.documentacao ||
+        results.auxilioMoradia.amfeta ||
+        results.auxilioMoradia.protocolo ||
+        results.auxilioMoradia.pendencias ||
+        results.auxilioMoradia.rubrica
+      ) {
         html += `<div class="group-card"><h3>Auxílio Moradia</h3>`;
-        if (results.auxilioMoradia.protocolo) {
-          html += `<div class="card">
-                    <span class="label">Protocolo:</span> <span class="value">${results.auxilioMoradia.protocolo}</span><br>
-                    <span class="label">Documentação:</span> <span class="value" style="color: green;">COMPLETA</span><br>
-                    <span class="info-text">Seu processo foi devidamente protocolado. Agora, basta aguardar o andamento. Qualquer movimentação relevante, você será informado(a) imediatamente.</span>
-                   </div>`;
-        } else if (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Documentacao) {
-          html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.auxilioMoradia.documentacao.Documentacao, 'documentacao')}</div>`;
+        if (results.auxilioMoradia.documentacao) {
+          html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.auxilioMoradia.documentacao, 'documentacao')}</div>`;
         }
-        if (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Pendencias) {
-          html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.auxilioMoradia.documentacao.Pendencias, pendenciaLinksAUX)}</div>`;
+        if (results.auxilioMoradia.amfeta) {
+          html += `<div class="card"><span class="label">Amfeta:</span> <span class="value">${results.auxilioMoradia.amfeta}</span></div>`;
+        }
+        if (results.auxilioMoradia.protocolo) {
+          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.auxilioMoradia.protocolo}</span></div>`;
+        }
+        if (results.auxilioMoradia.pendencias) {
+          html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.auxilioMoradia.pendencias, pendenciaLinksAUX)}</div>`;
+        }
+        if (results.auxilioMoradia.rubrica) {
+          html += `<div class="card"><span class="label">Rúbrica:</span> <span class="value">${results.auxilioMoradia.rubrica}</span></div>`;
         }
         html += `</div>`;
       }
       
       // Grupo VPE (Vantagem Pecuniária Especial)
-      if (results.vpe.protocolo || (results.vpe.documentacao && results.vpe.documentacao.Documentacao)) {
+      if (
+        results.vpe.protocolo ||
+        results.vpe.pendencias ||
+        results.vpe.rubrica ||
+        results.vpe.documentacao ||
+        results.vpe.listagem ||
+        results.vpe.amfeta
+      ) {
         html += `<div class="group-card"><h3>VPE (Vantagem Pecuniária Especial)</h3>`;
         if (results.vpe.protocolo) {
-          html += `<div class="card">
-                    <span class="label">Protocolo:</span> <span class="value">${results.vpe.protocolo}</span><br>
-                    <span class="label">Documentação:</span> <span class="value" style="color: green;">COMPLETA</span><br>
-                    <span class="info-text">Seu processo foi devidamente protocolado. Agora, basta aguardar o andamento. Qualquer movimentação relevante, você será informado(a) imediatamente.</span>
-                   </div>`;
-        } else if (results.vpe.documentacao && results.vpe.documentacao.Documentacao) {
-          html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.vpe.documentacao.Documentacao, 'documentacao')}</div>`;
+          html += `<div class="card"><span class="label">Protocolo:</span> <span class="value">${results.vpe.protocolo}</span></div>`;
         }
-        if (results.vpe.documentacao && results.vpe.documentacao.Pendencias) {
-          html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.vpe.documentacao.Pendencias, pendenciaLinksVPE)}</div>`;
+        if (results.vpe.pendencias) {
+          html += `<div class="card"><span class="label">Pendências:</span><br>${getPendenciaLinkHTML(results.vpe.pendencias, pendenciaLinksVPE)}</div>`;
         }
-        if (results.vpe.documentacao && results.vpe.documentacao["RÚBRICA"]) {
-          let rubricaVal = results.vpe.documentacao["RÚBRICA"].trim();
+        if (results.vpe.rubrica) {
+          let rubricaVal = results.vpe.rubrica.trim();
           let rubricaFormatted = `<span class="value">${rubricaVal}</span>`;
           if (rubricaVal.toUpperCase() === "NÃO RECEBE") {
             rubricaFormatted = `<span class="value" style="color: red;">${rubricaVal}</span>`;
-            if (results.vpe.documentacao["LISTAGEM"]) {
-              let listagemVal = results.vpe.documentacao["LISTAGEM"].trim();
+            if (results.vpe.listagem) {
+              let listagemVal = results.vpe.listagem.trim();
               rubricaFormatted += `<br><span class="label">Listagem:</span> <span class="value">${listagemVal}</span>`;
             }
           } else if (rubricaVal.toUpperCase() === "RECEBE") {
@@ -409,18 +424,22 @@
           }
           html += `<div class="card"><span class="label">Rúbrica:</span> ${rubricaFormatted}</div>`;
         }
+        if (results.vpe.documentacao) {
+          html += `<div class="card"><span class="label">Documentação:</span> ${formatValue(results.vpe.documentacao, 'documentacao')}</div>`;
+        }
+        if (results.vpe.listagem && (!results.vpe.rubrica || (results.vpe.rubrica && results.vpe.rubrica.trim().toUpperCase() !== "NÃO RECEBE"))) {
+          html += `<div class="card"><span class="label">Listagem:</span> <span class="value">${results.vpe.listagem}</span></div>`;
+        }
+        if (results.vpe.amfeta) {
+          html += `<div class="card"><span class="label">Amfeta:</span> <span class="value">${results.vpe.amfeta}</span></div>`;
+        }
         html += `</div>`;
       }
       
-      // Exibe o alerta específico para Ficha Financeira, se houver pendência
-      // (Caso a flag fichaFinanceiraPendente precise ser implementada, inclua sua lógica)
-      // Por enquanto, se ela estiver ativada, exibe o alerta:
-      // if (fichaFinanceiraPendente) { ... }
-      
       // Box de orientação para envio de documentos pendentes (se houver pendências em qualquer grupo)
       if (
-        (results.auxilioMoradia.documentacao && results.auxilioMoradia.documentacao.Pendencias) ||
-        (results.vpe.documentacao && results.vpe.documentacao.Pendencias)
+        (results.auxilioMoradia.pendencias) ||
+        (results.vpe.pendencias)
       ) {
         html += `
           <div class="message-block">
@@ -462,10 +481,17 @@
       // Se não houver nenhum dado encontrado, exibe mensagem
       if (
         !results.status &&
-        !results.auxilioMoradia.protocolo &&
         !results.auxilioMoradia.documentacao &&
+        !results.auxilioMoradia.amfeta &&
+        !results.auxilioMoradia.protocolo &&
+        !results.auxilioMoradia.pendencias &&
+        !results.auxilioMoradia.rubrica &&
         !results.vpe.protocolo &&
-        !results.vpe.documentacao
+        !results.vpe.pendencias &&
+        !results.vpe.rubrica &&
+        !results.vpe.documentacao &&
+        !results.vpe.listagem &&
+        !results.vpe.amfeta
       ) {
         html += `<div class="card"><span class="value">Nenhum dado encontrado para o CPF ${cpfFormatado}.</span></div>`;
       }
