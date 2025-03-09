@@ -101,15 +101,15 @@
     }
 
     // Processa o campo DOCUMENTAÇÃO: se não for "COMPLETA", separa os itens por vírgula e insere a tag "PENDENTE"
-function processDocumentation(docText, linksMap) {
-  if (docText.toUpperCase() !== "COMPLETA") {
-    const items = docText.split(/\s*,\s*/);
-    let itemsHtml = items.map(item => linkify(item, linksMap)).join("<br>");
-    return `<p><strong>DOCUMENTAÇÃO:</strong> <span style="color:red;">PENDENTE</span><br>${itemsHtml}</p>`;
-  } else {
-    return `<p><strong>DOCUMENTAÇÃO:</strong> ${docText}</p>`;
-  }
-}
+    function processDocumentation(docText, linksMap) {
+      if (docText.toUpperCase() !== "COMPLETA") {
+        const items = docText.split(/\s*,\s*/);
+        let itemsHtml = items.map(item => linkify(item, linksMap)).join("<br>");
+        return `<p><strong>DOCUMENTAÇÃO:</strong> <span style="color:red;">PENDENTE</span><br>${itemsHtml}</p>`;
+      } else {
+        return `<p><strong>DOCUMENTAÇÃO:</strong> ${docText}</p>`;
+      }
+    }
 
     // Exibe os resultados da consulta
     function displayResults(data) {
@@ -161,6 +161,20 @@ function processDocumentation(docText, linksMap) {
         if (contentVPE.trim() !== "") {
           html += createCard("VPE", contentVPE);
         }
+      }
+
+      // Se em Auxílio Moradia ou VPE a DOCUMENTAÇÃO contiver "FICHA FINANCEIRA", exibe o box com as informações do passo a passo
+      let fichaFinanceira = false;
+      if ((data["AUXÍLIO MORADIA"] && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA")) ||
+          (data.VPE && data.VPE.DOCUMENTAÇÃO && data.VPE.DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA"))) {
+        fichaFinanceira = true;
+      }
+      if (fichaFinanceira) {
+        html += createCard("Ficha Financeira", `
+          <p>PASSO A PASSO PARA FICHA FINANCEIRA</p>
+          <p>VIDEO: <a href="https://www.youtube.com/watch?v=BwEp_9B69sg" target="_blank">https://www.youtube.com/watch?v=BwEp_9B69sg</a></p>
+          <p>PASSO A PASSO PDF: <a href="https://drive.google.com/file/d/1CEj12CmvnUhstu1MQLrmmacPQFoFMskY/view?usp=drive_link" target="_blank">https://drive.google.com/file/d/1CEj12CmvnUhstu1MQLrmmacPQFoFMskY/view?usp=drive_link</a></p>
+        `);
       }
 
       // Se qualquer DOCUMENTAÇÃO (Auxílio Moradia ou VPE) não for "COMPLETA", exibe mensagem de pendência
