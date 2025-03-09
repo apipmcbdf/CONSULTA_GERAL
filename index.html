@@ -116,11 +116,9 @@
       const resultContainer = document.getElementById("resultContainer");
       let html = "";
 
-      // Dados VPE
+      // Se existirem dados em VPE, exibe Mensalidade e Nome
       if (data.VPE) {
         const vpe = data.VPE;
-        
-        // Card de Mensalidade (Associado)
         if (vpe.MENSALIDADE) {
           let statusClass = "";
           if (vpe.MENSALIDADE.toUpperCase() === "ATIVO") {
@@ -130,16 +128,12 @@
           }
           html += createCard("Mensalidade", `<p>ASSOCIADO: <span class="${statusClass}">${vpe.MENSALIDADE}</span></p>`);
         }
-
-        // Card com Nome da Pessoa
         if (vpe.NOME) {
           html += createCard("Nome", `<p>${vpe.NOME}</p>`);
         }
-      } else {
-        html += createCard("VPE", `<p>Dados VPE não encontrados.</p>`);
       }
 
-      // Card de Auxílio Moradia
+      // Se existirem dados em Auxílio Moradia, exibe DOCUMENTAÇÃO e STATUS
       if (data["AUXÍLIO MORADIA"]) {
         const aux = data["AUXÍLIO MORADIA"];
         let contentAux = "";
@@ -149,12 +143,12 @@
         if (aux.STATUS) {
           contentAux += `<p><strong>STATUS:</strong> ${aux.STATUS}</p>`;
         }
-        html += createCard("Auxílio Moradia", contentAux);
-      } else {
-        html += createCard("Auxílio Moradia", `<p>Dados de Auxílio Moradia não encontrados.</p>`);
+        if (contentAux.trim() !== "") {
+          html += createCard("Auxílio Moradia", contentAux);
+        }
       }
 
-      // Card de VPE – informações de DOCUMENTAÇÃO e STATUS (além da mensalidade já exibida)
+      // Se existirem dados em VPE, exibe também DOCUMENTAÇÃO e STATUS
       if (data.VPE) {
         const vpe = data.VPE;
         let contentVPE = "";
@@ -164,9 +158,9 @@
         if (vpe.STATUS) {
           contentVPE += `<p><strong>STATUS:</strong> ${vpe.STATUS}</p>`;
         }
-        html += createCard("VPE", contentVPE);
-      } else {
-        html += createCard("VPE", `<p>Dados VPE não encontrados.</p>`);
+        if (contentVPE.trim() !== "") {
+          html += createCard("VPE", contentVPE);
+        }
       }
 
       // Se qualquer DOCUMENTAÇÃO (Auxílio Moradia ou VPE) não for "COMPLETA", exibe mensagem de pendência
