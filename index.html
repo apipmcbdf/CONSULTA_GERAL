@@ -188,6 +188,10 @@
         }
         if (aux.STATUS) {
           contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
+          // Se o status contiver números, adiciona a mensagem de protocolo
+          if (/\d/.test(aux.STATUS)) {
+            contentAux += `<p style="color:green; font-weight:bold;">SEU PROCESSO FOI PROTOCOLADO COM SUCESSO, AGORA, BASTA AGUARDAR O ANDAMENTO DO PROCESSO, QUALQUER NOVIDADE NÓS PRONTAMENTE IREMOS INFORMA-LO INDIVIDUALMENTE.</p>`;
+          }
         }
         if (contentAux.trim() !== "") {
           html += createCard("Auxílio Moradia", contentAux, "center", "left");
@@ -203,6 +207,14 @@
         }
         if (vpe.STATUS) {
           contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
+          // Se o status for "SEGUNDA LISTAGEM DE IMPLANTAÇÃO" (caso insensível), adiciona a mensagem de implantação
+          if (vpe.STATUS.trim().toUpperCase() === "SEGUNDA LISTAGEM DE IMPLANTAÇÃO") {
+            contentVPE += `<p style="color:green; font-weight:bold;">O SEU NOME JÁ ESTÁ INCLUÍDO PARA IMPLANTAÇÃO, NÃO HÁ PRAZO, FAVOR AGUARDAR POIS QUALQUER NOVIDADE IREMOS INFORMAR A TODOS.</p>`;
+          }
+          // Se o status contiver números, adiciona a mensagem de protocolo
+          if (/\d/.test(vpe.STATUS)) {
+            contentVPE += `<p style="color:green; font-weight:bold;">SEU PROCESSO FOI PROTOCOLADO COM SUCESSO, AGORA, BASTA AGUARDAR O ANDAMENTO DO PROCESSO, QUALQUER NOVIDADE NÓS PRONTAMENTE IREMOS INFORMA-LO INDIVIDUALMENTE.</p>`;
+          }
         }
         if (contentVPE.trim() !== "") {
           html += createCard("VPE", contentVPE, "center", "left");
