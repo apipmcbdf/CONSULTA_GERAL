@@ -101,15 +101,15 @@
     }
 
     // Processa o campo DOCUMENTAÇÃO: se não for "COMPLETA", separa os itens por vírgula e insere a tag "PENDENTE"
-    function processDocumentation(docText, linksMap) {
-      if (docText.toUpperCase() !== "COMPLETA") {
-        const items = docText.split(/\s*,\s*/);
-        let itemsHtml = items.map(item => linkify(item, linksMap)).join("<br>");
-        return `<p><strong>DOCUMENTAÇÃO:</strong><br>${itemsHtml} <span style="color:red;">PENDENTE</span></p>`;
-      } else {
-        return `<p><strong>DOCUMENTAÇÃO:</strong> ${docText}</p>`;
-      }
-    }
+function processDocumentation(docText, linksMap) {
+  if (docText.toUpperCase() !== "COMPLETA") {
+    const items = docText.split(/\s*,\s*/);
+    let itemsHtml = items.map(item => linkify(item, linksMap)).join("<br>");
+    return `<p><strong>DOCUMENTAÇÃO:</strong> <span style="color:red;">PENDENTE</span><br>${itemsHtml}</p>`;
+  } else {
+    return `<p><strong>DOCUMENTAÇÃO:</strong> ${docText}</p>`;
+  }
+}
 
     // Exibe os resultados da consulta
     function displayResults(data) {
