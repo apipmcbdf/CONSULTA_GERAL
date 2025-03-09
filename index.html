@@ -188,6 +188,10 @@
         }
         if (aux.STATUS) {
           contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
+          // Se o status for "EM FILA", adiciona a mensagem solicitada
+          if (aux.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentAux += `<p style="color:green; font-weight:bold;">SUA DOCUMENTAÇÃO ESTÁ COMPLETA E EM FILA PARA SER PROTOCOLADA, NÃO HÁ PRAZO NEM A NESSECIDADE DE ENTRAR EM CONTATO. FAVOR ACOMPANHAR O ANDAMENTO POR AQUI.</p>`;
+          }
           // Se o status contiver números, adiciona a mensagem de protocolo
           if (/\d/.test(aux.STATUS)) {
             contentAux += `<p style="color:green; font-weight:bold;">SEU PROCESSO FOI PROTOCOLADO COM SUCESSO, AGORA, BASTA AGUARDAR O ANDAMENTO DO PROCESSO, QUALQUER NOVIDADE NÓS PRONTAMENTE IREMOS INFORMA-LO INDIVIDUALMENTE.</p>`;
@@ -207,7 +211,11 @@
         }
         if (vpe.STATUS) {
           contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
-          // Se o status for "SEGUNDA LISTAGEM DE IMPLANTAÇÃO" (caso insensível), adiciona a mensagem de implantação
+          // Se o status for "EM FILA", adiciona a mensagem solicitada
+          if (vpe.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentVPE += `<p style="color:green; font-weight:bold;">SUA DOCUMENTAÇÃO ESTÁ COMPLETA E EM FILA PARA SER PROTOCOLADA, NÃO HÁ PRAZO NEM A NESSECIDADE DE ENTRAR EM CONTATO. FAVOR ACOMPANHAR O ANDAMENTO POR AQUI.</p>`;
+          }
+          // Se o status for "SEGUNDA LISTAGEM DE IMPLANTAÇÃO", adiciona a mensagem de implantação
           if (vpe.STATUS.trim().toUpperCase() === "SEGUNDA LISTAGEM DE IMPLANTAÇÃO") {
             contentVPE += `<p style="color:green; font-weight:bold;">O SEU NOME JÁ ESTÁ INCLUÍDO PARA IMPLANTAÇÃO, NÃO HÁ PRAZO, FAVOR AGUARDAR POIS QUALQUER NOVIDADE IREMOS INFORMAR A TODOS.</p>`;
           }
@@ -299,18 +307,18 @@
 
   <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // Bloqueia o atalho Ctrl+U
-  document.addEventListener('keydown', function(event) {
-    if (event.ctrlKey && event.key.toLowerCase() === 'u') {
-      event.preventDefault();
-    }
-  });
+  <script>
+    // Bloqueia o atalho Ctrl+U
+    document.addEventListener('keydown', function(event) {
+      if (event.ctrlKey && event.key.toLowerCase() === 'u') {
+        event.preventDefault();
+      }
+    });
 
-  // Bloqueia o clique direito do mouse
-  document.addEventListener('contextmenu', function(event) {
-    event.preventDefault();
-  });
-</script>
+    // Bloqueia o clique direito do mouse
+    document.addEventListener('contextmenu', function(event) {
+      event.preventDefault();
+    });
+  </script>
 </body>
 </html>
