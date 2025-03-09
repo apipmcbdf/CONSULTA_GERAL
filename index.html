@@ -27,11 +27,7 @@
     .card-header {
       background-color: #ffffff;
       border-bottom: none;
-      text-align: center;
       font-weight: 500;
-    }
-    .card-body {
-      text-align: center;
     }
     h1 {
       text-align: center;
@@ -120,39 +116,39 @@
       return digits.padStart(11, '0');
     }
 
-    // Converte trechos de texto que correspondam às pendências em links
-    function linkify(text, linksMap) {
-      let linkedText = text;
-      for (const key in linksMap) {
-        const url = linksMap[key];
-        const regex = new RegExp(key, "g");
-        linkedText = linkedText.replace(regex, `<a href="${url}" target="_blank">${key}</a>`);
+    // Função para criar um card customizado. Se title estiver vazio, nenhum cabeçalho será exibido.
+    function createCard(title, content, headerAlign = 'center', bodyAlign = 'center') {
+      let headerHtml = "";
+      if (title && title.trim() !== "") {
+        headerHtml = `<div class="card-header" style="text-align: ${headerAlign};"><h5>${title}</h5></div>`;
       }
-      return linkedText;
-    }
-
-    // Cria um card com título e conteúdo
-    function createCard(title, content) {
       return `
         <div class="card">
-          <div class="card-header">
-            <h5>${title}</h5>
-          </div>
-          <div class="card-body">
+          ${headerHtml}
+          <div class="card-body" style="text-align: ${bodyAlign};">
             ${content}
           </div>
         </div>
       `;
     }
 
-    // Processa o campo DOCUMENTAÇÃO: se não for "COMPLETA", separa os itens por vírgula e insere a tag "PENDENTE"
+    // Processa a documentação: se for diferente de "COMPLETA", separa os itens, numera e verifica links
     function processDocumentation(docText, linksMap) {
       if (docText.toUpperCase() !== "COMPLETA") {
         const items = docText.split(/\s*,\s*/);
-        let itemsHtml = items.map(item => linkify(item, linksMap)).join("<br>");
-        return `<p><strong>DOCUMENTAÇÃO:</strong> <span style="color:red;">PENDENTE</span><br>${itemsHtml}</p>`;
+        let listItems = items.map((item, index) => {
+          let trimmed = item.trim();
+          let key = trimmed.toUpperCase();
+          if (linksMap.hasOwnProperty(key)) {
+            let url = linksMap[key];
+            return `<li>${index + 1}) <a href="${url}" target="_blank">${trimmed}</a></li>`;
+          } else {
+            return `<li>${index + 1}) <span style="color:red;">${trimmed}</span></li>`;
+          }
+        }).join("");
+        return `<p><strong>DOCUMENTAÇÃO:</strong> <span style="color:red;">PENDENTE</span></p><ol>${listItems}</ol>`;
       } else {
-        return `<p><strong>DOCUMENTAÇÃO:</strong> ${docText}</p>`;
+        return `<p><strong>DOCUMENTAÇÃO:</strong> COMPLETA</p>`;
       }
     }
 
@@ -161,24 +157,19 @@
       const resultContainer = document.getElementById("resultContainer");
       let html = "";
 
-      // Se existirem dados em VPE, exibe Mensalidade e Nome
-      if (data.VPE) {
-        const vpe = data.VPE;
-        if (vpe.MENSALIDADE) {
-          let statusClass = "";
-          if (vpe.MENSALIDADE.toUpperCase() === "ATIVO") {
-            statusClass = "status-ativo";
-          } else if (vpe.MENSALIDADE.toUpperCase() === "DESLIGADO") {
-            statusClass = "status-desligado";
-          }
-          html += createCard("Mensalidade", `<p>ASSOCIADO: <span class="${statusClass}">${vpe.MENSALIDADE}</span></p>`);
+      // BOX combinado de Nome e Mensalidade (sem título)
+      if (data.VPE && data.VPE.NOME && data.VPE.MENSALIDADE) {
+        let associado = data.VPE.MENSALIDADE.toUpperCase();
+        let conteudo = `<p>Nome: ${data.VPE.NOME}</p>
+                        <p>ASSOCIADO: <span class="${associado === "ATIVO" ? "status-ativo" : "status-desligado"}">${data.VPE.MENSALIDADE}</span></p>`;
+        if (associado === "DESLIGADO") {
+          conteudo += `<p style="color:red;">NÃO CONSTAM MENSALIDADES RECENTES PARA SEU CPF, ENTRE EM CONTATO CONOSCO POR TELEFONE OU PELO E-MAIL <strong>financeiro@apipmcbdf.com.br</strong></p>`;
         }
-        if (vpe.NOME) {
-          html += createCard("Nome", `<p>${vpe.NOME}</p>`);
-        }
+        // Card sem cabeçalho (box sem título) e texto centralizado por padrão (pode ser ajustado se necessário)
+        html += createCard("", conteudo, "center", "center");
       }
 
-      // Se existirem dados em Auxílio Moradia, exibe DOCUMENTAÇÃO e STATUS
+      // Box Auxílio Moradia – título centralizado, conteúdo à esquerda
       if (data["AUXÍLIO MORADIA"]) {
         const aux = data["AUXÍLIO MORADIA"];
         let contentAux = "";
@@ -189,11 +180,11 @@
           contentAux += `<p><strong>STATUS:</strong> ${aux.STATUS}</p>`;
         }
         if (contentAux.trim() !== "") {
-          html += createCard("Auxílio Moradia", contentAux);
+          html += createCard("Auxílio Moradia", contentAux, "center", "left");
         }
       }
 
-      // Se existirem dados em VPE, exibe também DOCUMENTAÇÃO e STATUS
+      // Box VPE – título centralizado, conteúdo à esquerda
       if (data.VPE) {
         const vpe = data.VPE;
         let contentVPE = "";
@@ -204,69 +195,49 @@
           contentVPE += `<p><strong>STATUS:</strong> ${vpe.STATUS}</p>`;
         }
         if (contentVPE.trim() !== "") {
-          html += createCard("VPE", contentVPE);
+          html += createCard("VPE", contentVPE, "center", "left");
         }
       }
 
-      // Se em Auxílio Moradia ou VPE a DOCUMENTAÇÃO contiver "FICHA FINANCEIRA", exibe o box com as informações do passo a passo
-      let fichaFinanceira = false;
-      if ((data["AUXÍLIO MORADIA"] && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA")) ||
-          (data.VPE && data.VPE.DOCUMENTAÇÃO && data.VPE.DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA"))) {
-        fichaFinanceira = true;
-      }
-      if (fichaFinanceira) {
-        html += createCard("Ficha Financeira", `
-          <p>PASSO A PASSO PARA FICHA FINANCEIRA</p>
-          <p>VIDEO: <a href="https://www.youtube.com/watch?v=BwEp_9B69sg" target="_blank">https://www.youtube.com/watch?v=BwEp_9B69sg</a></p>
-          <p>PASSO A PASSO PDF: <a href="https://drive.google.com/file/d/1CEj12CmvnUhstu1MQLrmmacPQFoFMskY/view?usp=drive_link" target="_blank">https://drive.google.com/file/d/1CEj12CmvnUhstu1MQLrmmacPQFoFMskY/view?usp=drive_link</a></p>
-        `);
-      }
-
-      // Se qualquer DOCUMENTAÇÃO (Auxílio Moradia ou VPE) não for "COMPLETA", exibe mensagem de pendência
+      // Verifica se alguma DOCUMENTAÇÃO (Auxílio Moradia ou VPE) é diferente de "COMPLETA"
       let pendente = false;
       if ((data["AUXÍLIO MORADIA"] && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO.toUpperCase() !== "COMPLETA") ||
           (data.VPE && data.VPE.DOCUMENTAÇÃO && data.VPE.DOCUMENTAÇÃO.toUpperCase() !== "COMPLETA")) {
         pendente = true;
       }
-
       if (pendente) {
-        html += `
-          <div class="card">
-            <div class="card-body">
-              <p><strong>📢 Atenção! Envio de Documentos Pendentes</strong></p>
-              <p>
-                Por favor, encaminhe os documentos pendentes devidamente escaneados para o e-mail:<br>
-                <strong>📧 documentos@apipmcbdf.com.br</strong> (exclusivo para envio de documentos)
-              </p>
-              <p>Assunto do e-mail: <strong>Documentação Pendente</strong></p>
-              <p><strong>⚠️ Importante:</strong></p>
-              <p>
-                Certifique-se de que os documentos estejam escaneados em alta qualidade para garantir a legibilidade.<br>
-                O envio dos documentos originais também é obrigatório e pode ser feito das seguintes formas:
-              </p>
-              <p>
-                <strong>📮 Por correio:</strong><br>
-                Rua Evaristo da Veiga, 55, 10º andar<br>
-                CEP: 20031-040
-              </p>
-              <p>
-                <strong>🙋 Entrega pessoalmente:</strong><br>
-                No mesmo endereço, durante o horário de atendimento: 09h às 13h
-              </p>
-              <p>
-                Caso tenha dúvidas, entre em contato pelos canais abaixo:
-              </p>
-              <p>
-                <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
-                <strong>💬 WhatsApp:</strong> (21) 98499-7413
-              </p>
-              <p>
-                <strong>📧 Para informações e dúvidas gerais:</strong> atendimento@apipmcbdf.com.br
-              </p>
-              <p>Agradecemos sua atenção e colaboração!</p>
-            </div>
-          </div>
+        let pendenteContent = `
+          <p style="text-align:center;"><strong>📢 Atenção! Envio de Documentos Pendentes</strong></p>
+          <p style="text-align:left;">
+            Por favor, encaminhe os documentos pendentes devidamente escaneados para o e-mail:<br>
+            <strong>📧 documentos@apipmcbdf.com.br</strong> (exclusivo para envio de documentos)
+          </p>
+          <p style="text-align:left;">Assunto do e-mail: <strong>Documentação Pendente</strong></p>
+          <p style="text-align:left;"><strong>⚠️ Importante:</strong></p>
+          <p style="text-align:left;">
+            Certifique-se de que os documentos estejam escaneados em alta qualidade para garantir a legibilidade.<br>
+            O envio dos documentos originais também é obrigatório e pode ser feito das seguintes formas:
+          </p>
+          <p style="text-align:left;"><strong>📮 Por correio:</strong><br>
+            Rua Evaristo da Veiga, 55, 10º andar<br>
+            CEP: 20031-040
+          </p>
+          <p style="text-align:left;"><strong>🙋 Entrega pessoalmente:</strong><br>
+            No mesmo endereço, durante o horário de atendimento: 09h às 13h
+          </p>
+          <p style="text-align:left;">
+            Caso tenha dúvidas, entre em contato pelos canais abaixo:
+          </p>
+          <p style="text-align:left;">
+            <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
+            <strong>💬 WhatsApp:</strong> (21) 98499-7413
+          </p>
+          <p style="text-align:left;">
+            <strong>📧 Para informações e dúvidas gerais:</strong> atendimento@apipmcbdf.com.br
+          </p>
+          <p style="text-align:center;">Agradecemos sua atenção e colaboração!</p>
         `;
+        html += createCard("", pendenteContent, "center", "left");
       }
 
       resultContainer.innerHTML = html;
