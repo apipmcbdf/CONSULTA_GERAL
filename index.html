@@ -116,6 +116,18 @@
       return digits.padStart(11, '0');
     }
 
+    // Função para tratar o campo STATUS conforme as regras solicitadas
+    function processStatus(statusText) {
+      let text = statusText.trim();
+      if (text.toUpperCase() === "PENDENTE") {
+        return `<span style="color:red;">${text}</span>`;
+      } else if (/\d/.test(text)) {
+        return `<span style="color:green;">NÚMERO DE PROCESSO: ${text}</span>`;
+      } else {
+        return text;
+      }
+    }
+
     // Função para criar um card customizado. Se title estiver vazio, nenhum cabeçalho será exibido.
     function createCard(title, content, headerAlign = 'center', bodyAlign = 'center') {
       let headerHtml = "";
@@ -132,18 +144,17 @@
       `;
     }
 
-    // Processa a documentação: se for diferente de "COMPLETA", separa os itens, numera e verifica links
+    // Processa a documentação: se for diferente de "COMPLETA", separa os itens, numera (via <ol>) e verifica links
     function processDocumentation(docText, linksMap) {
       if (docText.toUpperCase() !== "COMPLETA") {
         const items = docText.split(/\s*,\s*/);
-        let listItems = items.map((item, index) => {
+        let listItems = items.map(item => {
           let trimmed = item.trim();
           let key = trimmed.toUpperCase();
           if (linksMap.hasOwnProperty(key)) {
-            let url = linksMap[key];
-            return `<li>${index + 1}) <a href="${url}" target="_blank">${trimmed}</a></li>`;
+            return `<li><a href="${linksMap[key]}" target="_blank">${trimmed}</a></li>`;
           } else {
-            return `<li>${index + 1}) <span style="color:red;">${trimmed}</span></li>`;
+            return `<li><span style="color:red;">${trimmed}</span></li>`;
           }
         }).join("");
         return `<p><strong>DOCUMENTAÇÃO:</strong> <span style="color:red;">PENDENTE</span></p><ol>${listItems}</ol>`;
@@ -165,7 +176,6 @@
         if (associado === "DESLIGADO") {
           conteudo += `<p style="color:red;">NÃO CONSTAM MENSALIDADES RECENTES PARA SEU CPF, ENTRE EM CONTATO CONOSCO POR TELEFONE OU PELO E-MAIL <strong>financeiro@apipmcbdf.com.br</strong></p>`;
         }
-        // Card sem cabeçalho (box sem título) e texto centralizado por padrão (pode ser ajustado se necessário)
         html += createCard("", conteudo, "center", "center");
       }
 
@@ -177,7 +187,7 @@
           contentAux += processDocumentation(aux.DOCUMENTAÇÃO, pendenciaLinksAUX);
         }
         if (aux.STATUS) {
-          contentAux += `<p><strong>STATUS:</strong> ${aux.STATUS}</p>`;
+          contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
         }
         if (contentAux.trim() !== "") {
           html += createCard("Auxílio Moradia", contentAux, "center", "left");
@@ -192,7 +202,7 @@
           contentVPE += processDocumentation(vpe.DOCUMENTAÇÃO, pendenciaLinksVPE);
         }
         if (vpe.STATUS) {
-          contentVPE += `<p><strong>STATUS:</strong> ${vpe.STATUS}</p>`;
+          contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
         }
         if (contentVPE.trim() !== "") {
           html += createCard("VPE", contentVPE, "center", "left");
