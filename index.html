@@ -253,35 +253,45 @@ function displayResults(data) {
   }
   if (pendente) {
     let pendenteContent = `
-      <p style="text-align:center;"><strong>📢 Atenção! Envio de Documentos Pendentes</strong></p>
-      <p style="text-align:left;">
-        Encaminhe os documentos pendentes escaneados para:<br>
+      <div style="text-align: center; margin-bottom: 10px;">
+        <strong>📢 Atenção! Envio de Documentos Pendentes</strong>
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
+        Encaminhe os documentos pendentes escaneados para: <br>
         <strong>📧 documentos@apipmcbdf.com.br</strong> (envio exclusivo)
-      </p>
-      <p style="text-align:left;">Assunto: <strong>Documentação Pendente</strong></p>
-      <p style="text-align:left;"><strong>⚠️ Importante:</strong></p>
-      <p style="text-align:left;">
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
+        Assunto: <strong>Documentação Pendente</strong>
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
+        <strong>⚠️ Importante:</strong>
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
         Certifique-se da alta qualidade dos scans para legibilidade.<br>
         O envio dos originais também é obrigatório, via:
-      </p>
-      <p style="text-align:left;"><strong>📮 Correio:</strong><br>
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
+        <strong>📮 Correio:</strong> <br>
         Rua Evaristo da Veiga, 55, 10º andar<br>
         CEP: 20031-040
-      </p>
-      <p style="text-align:left;"><strong>🙋 Pessoalmente:</strong><br>
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
+        <strong>🙋 Pessoalmente:</strong> <br>
         No mesmo endereço, no horário: 09h às 13h
-      </p>
-      <p style="text-align:left;">
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
         Dúvidas? Contate-nos:
-      </p>
-      <p style="text-align:left;">
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
         <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
         <strong>💬 WhatsApp:</strong> (21) 98499-7413
-      </p>
-      <p style="text-align:left;">
+      </div>
+      <div style="text-align: left; margin-bottom: 10px;">
         <strong>📧 E-mail:</strong> atendimento@apipmcbdf.com.br
-      </p>
-      <p style="text-align:center;">Agradecemos sua atenção!</p>
+      </div>
+      <div style="text-align: center;">
+        Agradecemos sua atenção!
+      </div>
     `;
     html += createCard("", pendenteContent, "center", "left");
   }
