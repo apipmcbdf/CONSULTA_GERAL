@@ -168,7 +168,7 @@
       const resultContainer = document.getElementById("resultContainer");
       let html = "";
 
-      // Bloco combinado de Nome, ASSOCIADO e informações adicionais de VPE e AUXÍLIO MORADIA
+      // BOX combinado de Nome e Mensalidade (sem título) – inclui informações adicionais de VPE e AUXÍLIO MORADIA
       if (data.VPE && data.VPE.NOME && data.VPE.MENSALIDADE) {
         let associado = data.VPE.MENSALIDADE.toUpperCase();
         let conteudo = `<p>Nome: ${data.VPE.NOME}</p>
@@ -202,6 +202,56 @@
           }
         }
         html += createCard("", conteudo, "center", "center");
+      }
+
+      // Box Auxílio Moradia – título centralizado, conteúdo à esquerda
+      if (data["AUXÍLIO MORADIA"]) {
+        const aux = data["AUXÍLIO MORADIA"];
+        let contentAux = "";
+        if (aux.DOCUMENTAÇÃO) {
+          contentAux += processDocumentation(aux.DOCUMENTAÇÃO, pendenciaLinksAUX);
+        }
+        if (aux.STATUS) {
+          contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
+          // Se o status for "EM FILA", adiciona a mensagem solicitada
+          if (aux.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentAux += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Pedimos que acompanhe o andamento por este canal.</p>`;
+          }
+          // Se o status contiver números, adiciona a mensagem de protocolo
+          if (/\d/.test(aux.STATUS)) {
+            contentAux += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Agora, basta aguardar o andamento. Qualquer novidade será informada a você individualmente e de forma imediata.</p>`;
+          }
+        }
+        if (contentAux.trim() !== "") {
+          html += createCard("Auxílio Moradia", contentAux, "center", "left");
+        }
+      }
+
+      // Box VPE – título centralizado, conteúdo à esquerda
+      if (data.VPE) {
+        const vpe = data.VPE;
+        let contentVPE = "";
+        if (vpe.DOCUMENTAÇÃO) {
+          contentVPE += processDocumentation(vpe.DOCUMENTAÇÃO, pendenciaLinksVPE);
+        }
+        if (vpe.STATUS) {
+          contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
+          // Se o status for "EM FILA", adiciona a mensagem solicitada
+          if (vpe.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentVPE += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Pedimos que acompanhe o andamento por este canal.</p>`;
+          }
+          // Se o status for "SEGUNDA LISTAGEM DE IMPLANTAÇÃO", adiciona a mensagem de implantação
+          if (vpe.STATUS.trim().toUpperCase() === "SEGUNDA LISTAGEM DE IMPLANTAÇÃO") {
+            contentVPE += `<p style="color:green; font-weight:bold;">Seu nome já foi incluído para implantação. Não há prazo definido no momento. Pedimos que aguarde, pois qualquer novidade será informada a todos.</p>`;
+          }
+          // Se o status contiver números, adiciona a mensagem de protocolo
+          if (/\d/.test(vpe.STATUS)) {
+            contentVPE += `<p style="color:green; font-weight:bold;">SEU PROCESSO FOI PROTOCOLADO COM SUCESSO, AGORA, BASTA AGUARDAR O ANDAMENTO DO PROCESSO, QUALQUER NOVIDADE NÓS PRONTAMENTE IREMOS INFORMA-LO INDIVIDUALMENTE.</p>`;
+          }
+        }
+        if (contentVPE.trim() !== "") {
+          html += createCard("VPE", contentVPE, "center", "left");
+        }
       }
 
       // Verifica se alguma DOCUMENTAÇÃO (Auxílio Moradia ou VPE) é diferente de "COMPLETA"
