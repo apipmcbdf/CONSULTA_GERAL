@@ -61,6 +61,10 @@
       color: red;
       font-weight: bold;
     }
+    /* Garante que todo o conteúdo do card seja exibido */
+    .card-body {
+      overflow: visible;
+    }
   </style>
 </head>
 <body>
@@ -163,142 +167,141 @@
       }
     }
 
-  // Exibe os resultados da consulta
-function displayResults(data) {
-  const resultContainer = document.getElementById("resultContainer");
-  let html = "";
+    // Exibe os resultados da consulta
+    function displayResults(data) {
+      const resultContainer = document.getElementById("resultContainer");
+      let html = "";
 
-  // Box 1: Informações do Associado (com dados de VPE e AUXÍLIO MORADIA)
-  if (data.VPE && data.VPE.NOME && data.VPE.MENSALIDADE) {
-    let associado = data.VPE.MENSALIDADE.toUpperCase();
-    let conteudoAssociado = `<p><strong>Nome:</strong> ${data.VPE.NOME}</p>
-                              <p><strong>ASSOCIADO:</strong> <span class="${associado === "ATIVO" ? "status-ativo" : "status-desligado"}">${data.VPE.MENSALIDADE}</span></p>`;
-    if (associado === "ATRASADO") {
-      conteudoAssociado += `<p style="color:red;">NÃO CONSTAM MENSALIDADES RECENTES PARA SEU CPF, ENTRE EM CONTATO CONOSCO POR TELEFONE OU PELO E-MAIL <strong>financeiro@apipmcbdf.com.br</strong></p>`;
-    }
-    // Dados adicionais de VPE
-    if (data.VPE["LISTA VPE"]) {
-      conteudoAssociado += `<p><strong>LISTA VPE:</strong> ${data.VPE["LISTA VPE"]}</p>`;
-    }
-    if (data.VPE["AMFETA VPE"]) {
-      conteudoAssociado += `<p><strong>AMFETA VPE:</strong> ${data.VPE["AMFETA VPE"]}</p>`;
-    }
-    if (data.VPE["RECEBE VPE"]) {
-      conteudoAssociado += `<p><strong>RECEBE VPE:</strong> ${data.VPE["RECEBE VPE"]}</p>`;
-    }
-    if (data.VPE["INICIO"]) {
-      conteudoAssociado += `<p><strong>INÍCIO:</strong> ${data.VPE["INICIO"]}</p>`;
-    }
-    // Dados adicionais de AUXÍLIO MORADIA (se disponíveis)
-    if (data["AUXÍLIO MORADIA"]) {
-      if (data["AUXÍLIO MORADIA"]["AMFETA AUX"]) {
-        conteudoAssociado += `<p><strong>AMFETA AUX:</strong> ${data["AUXÍLIO MORADIA"]["AMFETA AUX"]}</p>`;
+      // Box 1: Informações do Associado (com dados de VPE e AUXÍLIO MORADIA)
+      if (data.VPE && data.VPE.NOME && data.VPE.MENSALIDADE) {
+        let associado = data.VPE.MENSALIDADE.toUpperCase();
+        let conteudoAssociado = `<p><strong>Nome:</strong> ${data.VPE.NOME}</p>
+                                  <p><strong>ASSOCIADO:</strong> <span class="${associado === "ATIVO" ? "status-ativo" : "status-desligado"}">${data.VPE.MENSALIDADE}</span></p>`;
+        if (associado === "ATRASADO") {
+          conteudoAssociado += `<p style="color:red;">NÃO CONSTAM MENSALIDADES RECENTES PARA SEU CPF, ENTRE EM CONTATO CONOSCO POR TELEFONE OU PELO E-MAIL <strong>financeiro@apipmcbdf.com.br</strong></p>`;
+        }
+        // Dados adicionais de VPE
+        if (data.VPE["LISTA VPE"]) {
+          conteudoAssociado += `<p><strong>LISTA VPE:</strong> ${data.VPE["LISTA VPE"]}</p>`;
+        }
+        if (data.VPE["AMFETA VPE"]) {
+          conteudoAssociado += `<p><strong>AMFETA VPE:</strong> ${data.VPE["AMFETA VPE"]}</p>`;
+        }
+        if (data.VPE["RECEBE VPE"]) {
+          conteudoAssociado += `<p><strong>RECEBE VPE:</strong> ${data.VPE["RECEBE VPE"]}</p>`;
+        }
+        if (data.VPE["INICIO"]) {
+          conteudoAssociado += `<p><strong>INÍCIO:</strong> ${data.VPE["INICIO"]}</p>`;
+        }
+        // Dados adicionais de AUXÍLIO MORADIA (se disponíveis)
+        if (data["AUXÍLIO MORADIA"]) {
+          if (data["AUXÍLIO MORADIA"]["AMFETA AUX"]) {
+            conteudoAssociado += `<p><strong>AMFETA AUX:</strong> ${data["AUXÍLIO MORADIA"]["AMFETA AUX"]}</p>`;
+          }
+          if (data["AUXÍLIO MORADIA"]["BENEFICIARIO"]) {
+            conteudoAssociado += `<p><strong>BENEFICIARIO:</strong> ${data["AUXÍLIO MORADIA"]["BENEFICIARIO"]}</p>`;
+          }
+          if (data["AUXÍLIO MORADIA"]["RECEBE AUX"]) {
+            conteudoAssociado += `<p><strong>RECEBE AUX:</strong> ${data["AUXÍLIO MORADIA"]["RECEBE AUX"]}</p>`;
+          }
+        }
+        html += createCard("Informações do Associado", conteudoAssociado, "center", "left");
       }
-      if (data["AUXÍLIO MORADIA"]["BENEFICIARIO"]) {
-        conteudoAssociado += `<p><strong>BENEFICIARIO:</strong> ${data["AUXÍLIO MORADIA"]["BENEFICIARIO"]}</p>`;
-      }
-      if (data["AUXÍLIO MORADIA"]["RECEBE AUX"]) {
-        conteudoAssociado += `<p><strong>RECEBE AUX:</strong> ${data["AUXÍLIO MORADIA"]["RECEBE AUX"]}</p>`;
-      }
-    }
-    html += createCard("Informações do Associado", conteudoAssociado, "center", "left");
-  }
 
-  // Box 2: Auxílio Moradia
-  if (data["AUXÍLIO MORADIA"]) {
-    const aux = data["AUXÍLIO MORADIA"];
-    let contentAux = "";
-    if (aux.DOCUMENTAÇÃO) {
-      contentAux += processDocumentation(aux.DOCUMENTAÇÃO, pendenciaLinksAUX);
-    }
-    if (aux.STATUS) {
-      contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
-      if (aux.STATUS.trim().toUpperCase() === "EM FILA") {
-        contentAux += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
+      // Box 2: Auxílio Moradia
+      if (data["AUXÍLIO MORADIA"]) {
+        const aux = data["AUXÍLIO MORADIA"];
+        let contentAux = "";
+        if (aux.DOCUMENTAÇÃO) {
+          contentAux += processDocumentation(aux.DOCUMENTAÇÃO, pendenciaLinksAUX);
+        }
+        if (aux.STATUS) {
+          contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
+          if (aux.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentAux += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
+          }
+          if (/\d/.test(aux.STATUS)) {
+            contentAux += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
+          }
+        }
+        html += createCard("Auxílio Moradia", contentAux, "center", "left");
       }
-      if (/\d/.test(aux.STATUS)) {
-        contentAux += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
-      }
-    }
-    html += createCard("Auxílio Moradia", contentAux, "center", "left");
-  }
 
-  // Box 3: VPE
-  if (data.VPE) {
-    const vpe = data.VPE;
-    let contentVPE = "";
-    if (vpe.DOCUMENTAÇÃO) {
-      contentVPE += processDocumentation(vpe.DOCUMENTAÇÃO, pendenciaLinksVPE);
+      // Box 3: VPE
+      if (data.VPE) {
+        const vpe = data.VPE;
+        let contentVPE = "";
+        if (vpe.DOCUMENTAÇÃO) {
+          contentVPE += processDocumentation(vpe.DOCUMENTAÇÃO, pendenciaLinksVPE);
+        }
+        if (vpe.STATUS) {
+          contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
+          if (vpe.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentVPE += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
+          }
+          if (vpe.STATUS.trim().toUpperCase() === "SEGUNDA LISTAGEM DE IMPLANTAÇÃO") {
+            contentVPE += `<p style="color:green; font-weight:bold;">Seu nome já foi incluído para implantação. Aguarde novas informações.</p>`;
+          }
+          if (/\d/.test(vpe.STATUS)) {
+            contentVPE += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
+          }
+        }
+        html += createCard("VPE", contentVPE, "center", "left");
+      }
+
+      // Box 4: Documentação Pendente (caso alguma documentação não esteja COMPLETA)
+      let pendente = false;
+      if ((data["AUXÍLIO MORADIA"] && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO.toUpperCase() !== "COMPLETA") ||
+          (data.VPE && data.VPE.DOCUMENTAÇÃO && data.VPE.DOCUMENTAÇÃO.toUpperCase() !== "COMPLETA")) {
+        pendente = true;
+      }
+      if (pendente) {
+        let pendenteContent = `
+          <div style="text-align: center; margin-bottom: 10px;">
+            <strong>📢 Atenção! Envio de Documentos Pendentes</strong>
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            Encaminhe os documentos pendentes escaneados para: <br>
+            <strong>📧 documentos@apipmcbdf.com.br</strong> (envio exclusivo)
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            Assunto: <strong>Documentação Pendente</strong>
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            <strong>⚠️ Importante:</strong>
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            Certifique-se da alta qualidade dos scans para legibilidade.<br>
+            O envio dos originais também é obrigatório, via:
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            <strong>📮 Correio:</strong> <br>
+            Rua Evaristo da Veiga, 55, 10º andar<br>
+            CEP: 20031-040
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            <strong>🙋 Pessoalmente:</strong> <br>
+            No mesmo endereço, no horário: 09h às 13h
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            Dúvidas? Contate-nos:
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
+            <strong>💬 WhatsApp:</strong> (21) 98499-7413
+          </div>
+          <div style="text-align: left; margin-bottom: 10px;">
+            <strong>📧 E-mail:</strong> atendimento@apipmcbdf.com.br
+          </div>
+          <div style="text-align: center;">
+            Agradecemos sua atenção!
+          </div>
+        `;
+        html += createCard("", pendenteContent, "center", "left");
+      }
+
+      resultContainer.innerHTML = html;
     }
-    if (vpe.STATUS) {
-      contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
-      if (vpe.STATUS.trim().toUpperCase() === "EM FILA") {
-        contentVPE += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
-      }
-      if (vpe.STATUS.trim().toUpperCase() === "SEGUNDA LISTAGEM DE IMPLANTAÇÃO") {
-        contentVPE += `<p style="color:green; font-weight:bold;">Seu nome já foi incluído para implantação. Aguarde novas informações.</p>`;
-      }
-      if (/\d/.test(vpe.STATUS)) {
-        contentVPE += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
-      }
-    }
-    html += createCard("VPE", contentVPE, "center", "left");
-  }
-
-  // Box 4: Documentação Pendente (caso alguma documentação não esteja COMPLETA)
-  let pendente = false;
-  if ((data["AUXÍLIO MORADIA"] && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO && data["AUXÍLIO MORADIA"].DOCUMENTAÇÃO.toUpperCase() !== "COMPLETA") ||
-      (data.VPE && data.VPE.DOCUMENTAÇÃO && data.VPE.DOCUMENTAÇÃO.toUpperCase() !== "COMPLETA")) {
-    pendente = true;
-  }
-  if (pendente) {
-    let pendenteContent = `
-      <div style="text-align: center; margin-bottom: 10px;">
-        <strong>📢 Atenção! Envio de Documentos Pendentes</strong>
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        Encaminhe os documentos pendentes escaneados para: <br>
-        <strong>📧 documentos@apipmcbdf.com.br</strong> (envio exclusivo)
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        Assunto: <strong>Documentação Pendente</strong>
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        <strong>⚠️ Importante:</strong>
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        Certifique-se da alta qualidade dos scans para legibilidade.<br>
-        O envio dos originais também é obrigatório, via:
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        <strong>📮 Correio:</strong> <br>
-        Rua Evaristo da Veiga, 55, 10º andar<br>
-        CEP: 20031-040
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        <strong>🙋 Pessoalmente:</strong> <br>
-        No mesmo endereço, no horário: 09h às 13h
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        Dúvidas? Contate-nos:
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        <strong>📞 Telefones:</strong> (21) 2532-6974 / 2220-6154 / 2544-2607<br>
-        <strong>💬 WhatsApp:</strong> (21) 98499-7413
-      </div>
-      <div style="text-align: left; margin-bottom: 10px;">
-        <strong>📧 E-mail:</strong> atendimento@apipmcbdf.com.br
-      </div>
-      <div style="text-align: center;">
-        Agradecemos sua atenção!
-      </div>
-    `;
-    html += createCard("", pendenteContent, "center", "left");
-  }
-
-  resultContainer.innerHTML = html;
-}
-
 
     // Função para consultar o CPF no Firestore
     async function consultarCPF() {
