@@ -223,8 +223,8 @@
         if (aux.DOCUMENTAÇÃO) {
           contentAux += processDocumentation(aux.DOCUMENTAÇÃO, pendenciaLinksAUX);
         }
-        // Exibe STATUS somente se NÃO forem ambos "PENDENTE"
-        if (aux.STATUS && !(aux.DOCUMENTAÇÃO && aux.DOCUMENTAÇÃO.trim().toUpperCase() === "PENDENTE" && aux.STATUS.trim().toUpperCase() === "PENDENTE")) {
+        // Exibe STATUS apenas se não for o caso de ambos serem pendentes
+        if (aux.STATUS && !(aux.STATUS.trim().toUpperCase() === "PENDENTE" && aux.DOCUMENTAÇÃO.trim().toUpperCase() !== "COMPLETA")) {
           contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
           if (aux.STATUS.trim().toUpperCase() === "EM FILA") {
             contentAux += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
@@ -247,8 +247,8 @@
         if (vpe.DOCUMENTAÇÃO) {
           contentVPE += processDocumentation(vpe.DOCUMENTAÇÃO, pendenciaLinksVPE);
         }
-        // Exibe STATUS somente se NÃO forem ambos "PENDENTE"
-        if (vpe.STATUS && !(vpe.DOCUMENTAÇÃO && vpe.DOCUMENTAÇÃO.trim().toUpperCase() === "PENDENTE" && vpe.STATUS.trim().toUpperCase() === "PENDENTE")) {
+        // Exibe STATUS apenas se não for o caso de ambos serem pendentes
+        if (vpe.STATUS && !(vpe.STATUS.trim().toUpperCase() === "PENDENTE" && vpe.DOCUMENTAÇÃO.trim().toUpperCase() !== "COMPLETA")) {
           contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
           if (vpe.STATUS.trim().toUpperCase() === "EM FILA") {
             contentVPE += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
@@ -260,7 +260,7 @@
             contentVPE += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
           }
         }
-        // Verifica se DOCUMENTAÇÃO contém "FICHA FINANCEIRA" para adicionar informações específicas
+        // Se DOCUMENTAÇÃO contiver "FICHA FINANCEIRA", adiciona as informações específicas e o link
         if (vpe.DOCUMENTAÇÃO && vpe.DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA")) {
           contentVPE += `<p><strong style="color:blue;">A ficha financeira pendente se refere exclusivamente à sua parte, não ao instituidor nem à pensionista anterior, se houver. O período tem início em 2008; entretanto, caso sua pensão tenha começado após essa data, o início será a data de início da sua pensão. A data final é 2025.</strong></p>`;
           contentVPE += `<p><a href="https://drive.google.com/file/d/1DhryUJl8EVZp3j2ZwvYoeU2jiw53WrqN/view?usp=sharing" target="_blank">PASSO A PASSO FICHA FINANCEIRA (CLIQUE AQUI)</a></p>`;
