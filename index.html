@@ -193,7 +193,7 @@
           conteudoAssociado += `<p><strong>LISTA VPE:</strong> ${data.VPE["LISTA VPE"]}</p>`;
         }
         if (data.VPE["AMFETA VPE"]) {
-          conteudoAssociado += `<p><strong>AMFETA VPE:</strong> ${data.VPE["AMFETA VPE"]}</p>`;
+          conteudoAssociado += `<p><strong>LISTA VPE (2008):</strong> ${data.VPE["AMFETA VPE"]}</p>`;
         }
         if (data.VPE["RECEBE VPE"]) {
           conteudoAssociado += `<p><strong>RECEBE VPE:</strong> ${data.VPE["RECEBE VPE"]}</p>`;
@@ -204,7 +204,7 @@
         // Dados adicionais de AUXÍLIO MORADIA (se disponíveis)
         if (data["AUXÍLIO MORADIA"]) {
           if (data["AUXÍLIO MORADIA"]["AMFETA AUX"]) {
-            conteudoAssociado += `<p><strong>AMFETA AUX:</strong> ${data["AUXÍLIO MORADIA"]["AMFETA AUX"]}</p>`;
+            conteudoAssociado += `<p><strong>LISTA AUX (2008):</strong> ${data["AUXÍLIO MORADIA"]["AMFETA AUX"]}</p>`;
           }
           if (data["AUXÍLIO MORADIA"]["BENEFICIARIO"]) {
             conteudoAssociado += `<p><strong>BENEFICIARIO:</strong> ${data["AUXÍLIO MORADIA"]["BENEFICIARIO"]}</p>`;
