@@ -117,7 +117,7 @@
 
     // Mapeamento dos links para documentos pendentes – Auxílio Moradia
     const pendenciaLinksAUX = {
-      "CONTRATO AUX": "https://drive.google.com/file/d/1rryE7Kworr16Qhb6-i1TGXZXQyPImiI-/view?usp=drive_link",
+      "CONTRATO AUX": "https://drive.google.com/file/d/1rryE7Kworr16Qhb6-i1TGZXQyPImiI-/view?usp=drive_link",
       "PROCURAÇÃO AUX": "https://drive.google.com/file/d/1rsujXVdCMEiIO0di30OoUAuKwO4JEnvK/view?usp=drive_link",
       "DECLARAÇÃO DE INEXISTENCIA DE AÇÃO AUX": "https://drive.google.com/file/d/1rt4tOVPEQuU7Nj1mHEIMlx25L2ZqaXjp/view?usp=drive_link"
     };
@@ -217,53 +217,54 @@
       }
 
       // Box 2: Auxílio Moradia
-if (data["AUXÍLIO MORADIA"]) {
-  const aux = data["AUXÍLIO MORADIA"];
-  let contentAux = "";
-  // Se a DOCUMENTAÇÃO contiver "FICHA FINANCEIRA", exibe apenas o link
-  if (aux.DOCUMENTAÇÃO && aux.DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA")) {
-    contentAux += `<p><a href="https://drive.google.com/file/d/1DhryUJl8EVZp3j2ZwvYoeU2jiw53WrqN/view?usp=sharing" target="_blank">PASSO A PASSO FICHA FINANCEIRA (CLIQUE AQUI)</a></p>`;
-  } else if (aux.DOCUMENTAÇÃO) {
-    contentAux += processDocumentation(aux.DOCUMENTAÇÃO, pendenciaLinksAUX);
-  }
-  if (aux.STATUS) {
-    contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
-    if (aux.STATUS.trim().toUpperCase() === "EM FILA") {
-      contentAux += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
-    }
-    if (/\d/.test(aux.STATUS)) {
-      contentAux += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
-    }
-  }
-  html += createCard("Auxílio Moradia", contentAux, "center", "left");
-}
+      if (data["AUXÍLIO MORADIA"]) {
+        const aux = data["AUXÍLIO MORADIA"];
+        let contentAux = "";
+        if (aux.DOCUMENTAÇÃO) {
+          contentAux += processDocumentation(aux.DOCUMENTAÇÃO, pendenciaLinksAUX);
+        }
+        if (aux.STATUS) {
+          contentAux += `<p><strong>STATUS:</strong> ${processStatus(aux.STATUS)}</p>`;
+          if (aux.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentAux += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
+          }
+          if (/\d/.test(aux.STATUS)) {
+            contentAux += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
+          }
+        }
+        // Se DOCUMENTAÇÃO contiver "FICHA FINANCEIRA", adiciona o link ao final de todas as informações
+        if (aux.DOCUMENTAÇÃO && aux.DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA")) {
+          contentAux += `<p><a href="https://drive.google.com/file/d/1DhryUJl8EVZp3j2ZwvYoeU2jiw53WrqN/view?usp=sharing" target="_blank">PASSO A PASSO FICHA FINANCEIRA (CLIQUE AQUI)</a></p>`;
+        }
+        html += createCard("Auxílio Moradia", contentAux, "center", "left");
+      }
 
       // Box 3: VPE
-if (data.VPE) {
-  const vpe = data.VPE;
-  let contentVPE = "";
-  if (vpe.DOCUMENTAÇÃO) {
-    contentVPE += processDocumentation(vpe.DOCUMENTAÇÃO, pendenciaLinksVPE);
-  }
-  if (vpe.STATUS) {
-    contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
-    if (vpe.STATUS.trim().toUpperCase() === "EM FILA") {
-      contentVPE += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
-    }
-    if (vpe.STATUS.trim().toUpperCase() === "SEGUNDA LISTAGEM DE IMPLANTAÇÃO") {
-      contentVPE += `<p style="color:green; font-weight:bold;">Seu nome já foi incluído para implantação. Aguarde novas informações.</p>`;
-    }
-    if (/\d/.test(vpe.STATUS)) {
-      contentVPE += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
-    }
-  }
-  // Verifica se a DOCUMENTAÇÃO contém a palavra "FICHA FINANCEIRA"
-  if (vpe.DOCUMENTAÇÃO && vpe.DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA")) {
-    contentVPE += `<p><strong style="color:blue;">A ficha financeira pendente se refere exclusivamente à sua parte, não ao instituidor nem à pensionista anterior, se houver. O período tem início em 2008; entretanto, caso sua pensão tenha começado após essa data, o início será a data de início da sua pensão. A data final é 2025.</strong></p>`;
-    contentVPE += `<p><a href="https://drive.google.com/file/d/1DhryUJl8EVZp3j2ZwvYoeU2jiw53WrqN/view?usp=sharing" target="_blank">PASSO A PASSO FICHA FINANCEIRA (CLIQUE AQUI)</a></p>`;
-  }
-  html += createCard("VPE", contentVPE, "center", "left");
-}
+      if (data.VPE) {
+        const vpe = data.VPE;
+        let contentVPE = "";
+        if (vpe.DOCUMENTAÇÃO) {
+          contentVPE += processDocumentation(vpe.DOCUMENTAÇÃO, pendenciaLinksVPE);
+        }
+        if (vpe.STATUS) {
+          contentVPE += `<p><strong>STATUS:</strong> ${processStatus(vpe.STATUS)}</p>`;
+          if (vpe.STATUS.trim().toUpperCase() === "EM FILA") {
+            contentVPE += `<p style="color:green; font-weight:bold;">Sua documentação está completa e aguarda protocolação. Não há prazo definido nem necessidade de contato no momento. Acompanhe o andamento por este canal.</p>`;
+          }
+          if (vpe.STATUS.trim().toUpperCase() === "SEGUNDA LISTAGEM DE IMPLANTAÇÃO") {
+            contentVPE += `<p style="color:green; font-weight:bold;">Seu nome já foi incluído para implantação. Aguarde novas informações.</p>`;
+          }
+          if (/\d/.test(vpe.STATUS)) {
+            contentVPE += `<p style="color:green; font-weight:bold;">Seu processo foi protocolado com sucesso. Aguarde o andamento; novidades serão comunicadas individualmente.</p>`;
+          }
+        }
+        // Verifica se a DOCUMENTAÇÃO contém a palavra "FICHA FINANCEIRA"
+        if (vpe.DOCUMENTAÇÃO && vpe.DOCUMENTAÇÃO.toUpperCase().includes("FICHA FINANCEIRA")) {
+          contentVPE += `<p><strong style="color:blue;">A ficha financeira pendente se refere exclusivamente à sua parte, não ao instituidor nem à pensionista anterior, se houver. O período tem início em 2008; entretanto, caso sua pensão tenha começado após essa data, o início será a data de início da sua pensão. A data final é 2025.</strong></p>`;
+          contentVPE += `<p><a href="https://drive.google.com/file/d/1DhryUJl8EVZp3j2ZwvYoeU2jiw53WrqN/view?usp=sharing" target="_blank">PASSO A PASSO FICHA FINANCEIRA (CLIQUE AQUI)</a></p>`;
+        }
+        html += createCard("VPE", contentVPE, "center", "left");
+      }
 
       // Box 4: Documentação Pendente (caso alguma documentação não esteja COMPLETA)
       let pendente = false;
